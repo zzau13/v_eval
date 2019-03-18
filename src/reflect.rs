@@ -173,7 +173,9 @@ impl<'a> Visit<'a> for Reflect<'a> {
         err_some!(self, qself);
         let path: &str = &quote!(#path).to_string();
         if let Some(src) = self.ctx.get(&path) {
+            self.push_op(Operator::ParenLeft);
             self.visit_expr(src);
+            self.push_op(Operator::ParenRight);
         } else {
             self.on_err = true;
         }
@@ -521,5 +523,14 @@ mod test {
         ctx.insert("foo", &arg);
 
         assert_eq!(eval(&ctx, &e).unwrap(), Bool(false));
+
+        let src = "(foo * 2) + 1";
+        let e = parse_str::<syn::Expr>(src).unwrap();
+        let mut ctx = BTreeMap::new();
+        let arg = parse_str::<syn::Expr>("-1 + 1").unwrap();
+
+        ctx.insert("foo", &arg);
+
+        assert_eq!(eval(&ctx, &e).unwrap(), Int(1));
     }
 }
