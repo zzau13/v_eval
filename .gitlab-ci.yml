@@ -1,0 +1,8 @@
+test:stable:
+    image: rust:latest
+    script:
+        - rustc --version && cargo --version
+        - rustup component add rustfmt
+        - cargo check
+        - cargo fmt -- --check
+        - cargo test

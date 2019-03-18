@@ -1,0 +1,19 @@
+[package]
+name = "v_eval"
+version = "0.0.1"
+authors = ["Rust-iendo Barcelona <riendocontributions@gmail.com>"]
+description = "Evaluator with context"
+documentation = "https://docs.rs/v_eval"
+edition = "2018"
+keywords = ["reflect", "eval"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://gitlab.com/r-iendo/v_eval"
+
+[badges]
+gitlab = { repository = "r-iendo/v_eval" }
+maintenance = { status = "actively-developed" }
+
+[dependencies]
+syn = { version = "0.15", features = ["visit"] }
+quote = "0.6"
