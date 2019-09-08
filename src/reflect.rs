@@ -201,8 +201,14 @@ impl<'a> Visit<'a> for Reflect<'a> {
     fn visit_lit(&mut self, l: &'a Lit) {
         use syn::Lit::*;
         match l {
-            Int(a) => self.output.push(Output::V(Value::Int(a.value() as i64))),
-            Float(a) => self.output.push(Output::V(Value::Float(a.value()))),
+            Int(a) => match a.base10_parse() {
+                Ok(n) => self.output.push(Output::V(Value::Int(n))),
+                _ => self.on_err = true,
+            },
+            Float(a) => match a.base10_parse() {
+                Ok(n) => self.output.push(Output::V(Value::Float(n))),
+                _ => self.on_err = true,
+            },
             Bool(a) => self.output.push(Output::V(Value::Bool(a.value))),
             _ => self.on_err = true,
         }
