@@ -26,7 +26,6 @@ fn main() -> Result<(), ()> {
 Please, contribute to v_eval! The more the better! Feel free to to open an issue and/or contacting directly with the 
 owner for any request or suggestion.
 
-
 ## Code of conduct
 This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4, available at [http://contributor-covenant.org/version/1/4][version]
 
@@ -36,8 +35,3 @@ This Code of Conduct is adapted from the [Contributor Covenant][homepage], versi
 ## License
 This project is distributed under the terms of both the Apache License (Version 2.0) and the MIT license, specified in 
 [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) respectively.
-
-## Support
-[Patreon][patreon]
-
-[patreon]: https://www.patreon.com/r_iendo 
