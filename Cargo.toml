@@ -1,7 +1,7 @@
 [package]
 name = "v_eval"
-version = "0.0.2"
-authors = ["Rust-iendo Barcelona <riendocontributions@gmail.com>"]
+version = "0.1.0"
+authors = ["Juan Aguilar Santillana <mhpoin@gmail.com>"]
 description = "Expression evaluator with context"
 documentation = "https://docs.rs/v_eval"
 edition = "2018"
