@@ -28,20 +28,18 @@ pub(super) enum Operator {
 }
 
 impl Operator {
-    fn preference(&self, o: &Operator) -> Ordering {
-        (*self as u8)
-            .leading_zeros()
-            .cmp(&(*o as u8).leading_zeros())
+    fn preference(self, o: Operator) -> Ordering {
+        (self as u8).leading_zeros().cmp(&(o as u8).leading_zeros())
     }
 
-    pub(super) fn gt_preference(&self, o: &Operator) -> bool {
+    pub(super) fn gt_preference(self, o: Operator) -> bool {
         match self.preference(o) {
             Ordering::Greater => true,
             _ => false,
         }
     }
 
-    pub(super) fn eq_preference(&self, o: &Operator) -> bool {
+    pub(super) fn eq_preference(self, o: Operator) -> bool {
         match self.preference(o) {
             Ordering::Equal => true,
             _ => false,
@@ -55,9 +53,9 @@ mod test {
 
     #[test]
     fn test_op_preference() {
-        assert!(!Operator::Add.gt_preference(&Operator::Sub) && Operator::Sub != Operator::Add);
-        assert!(!Operator::Not.gt_preference(&Operator::Not) && Operator::Not == Operator::Not);
-        assert!(!Operator::Add.gt_preference(&Operator::Not));
-        assert!(Operator::Not.gt_preference(&Operator::Add));
+        assert!(!Operator::Add.gt_preference(Operator::Sub) && Operator::Sub != Operator::Add);
+        assert!(!Operator::Not.gt_preference(Operator::Not));
+        assert!(!Operator::Add.gt_preference(Operator::Not));
+        assert!(Operator::Not.gt_preference(Operator::Add));
     }
 }

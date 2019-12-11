@@ -24,26 +24,26 @@ extern crate quote;
 
 use syn::parse_str;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 mod operator;
 mod reflect;
-mod values;
+mod value;
 
 pub use self::reflect::eval;
-pub use self::values::Value;
+pub use self::value::Value;
 
 /// Evaluator with context
-pub struct Eval(HashMap<String, syn::Expr>);
+pub struct Eval(BTreeMap<String, syn::Expr>);
 
 impl Default for Eval {
     fn default() -> Self {
-        Self(HashMap::new())
+        Self(BTreeMap::new())
     }
 }
 
 impl Eval {
-    pub fn new(c: HashMap<String, syn::Expr>) -> Self {
+    pub fn new(c: BTreeMap<String, syn::Expr>) -> Self {
         Self(c)
     }
 
@@ -66,18 +66,8 @@ impl Eval {
     pub fn eval(&self, src: &str) -> Option<Value> {
         parse_str::<syn::Expr>(src)
             .ok()
-            .map_or(None, |src| eval(&ctx_as_ref(&self.0), &src))
+            .and_then(|src| eval(&self.0, &src))
     }
-}
-
-/// Cast context elements to references
-pub fn ctx_as_ref(ctx: &HashMap<String, syn::Expr>) -> BTreeMap<&str, &syn::Expr> {
-    let mut b: BTreeMap<&str, &syn::Expr> = BTreeMap::new();
-    for (k, v) in ctx {
-        b.insert(k, v);
-    }
-
-    b
 }
 
 #[cfg(test)]
@@ -88,6 +78,8 @@ mod test {
     fn test() -> Result<(), ()> {
         let e = Eval::default()
             .insert("foo", "true")?
+            .insert("fon", "1")?
+            .insert("s", r#""foo""#)?
             .insert("bar", "false")?;
 
         assert_eq!(e.eval("foo != bar").unwrap(), Value::Bool(true));
@@ -97,6 +89,35 @@ mod test {
         );
         assert_eq!(e.eval("1 == 1 != bar").unwrap(), Value::Bool(true));
         assert_eq!(e.eval("1 == 1 + 1 == bar").unwrap(), Value::Bool(true));
+        assert_eq!(e.eval("0..1").unwrap(), Value::Range(0..1));
+        assert_eq!(e.eval("(0..1) == (0..1)").unwrap(), Value::Bool(true));
+        assert_eq!(e.eval("0..2 * (1 + 1)").unwrap(), Value::Range(0..4));
+        assert_eq!(
+            e.eval("fon + 1..fon + 2 * (1 + 1)").unwrap(),
+            Value::Range(2..5)
+        );
+        assert_eq!(
+            e.eval("fon + 1..fon + 2 * (1 + 1)").unwrap(),
+            Value::Range(2..5)
+        );
+        assert_eq!(e.eval(r#""foo" == s"#).unwrap(), Value::Bool(true));
+        assert_eq!(e.eval(r#""bar" != s"#).unwrap(), Value::Bool(true));
+        assert_eq!(e.eval("s").unwrap(), Value::Str("foo".into()));
+        assert_eq!(
+            e.eval("[foo, true]").unwrap(),
+            Value::Vec(vec![Value::Bool(true), Value::Bool(true)])
+        );
+        assert_eq!(
+            e.eval("[foo, 1]").unwrap(),
+            Value::Vec(vec![Value::Bool(true), Value::Int(1)])
+        );
+        assert_eq!(
+            e.eval("[foo, [1, 2]]").unwrap(),
+            Value::Vec(vec![
+                Value::Bool(true),
+                Value::Vec(vec![Value::Int(1), Value::Int(2)])
+            ])
+        );
 
         Ok(())
     }

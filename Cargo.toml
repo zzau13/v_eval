@@ -15,5 +15,5 @@ gitlab = { repository = "r-iendo/v_eval" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-syn = { version = "1.0", features = ["visit"] }
+syn = { version = "1.0", features = ["visit", "full"] }
 quote = "1.0"

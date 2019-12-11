@@ -1,10 +1,13 @@
-use syn::{visit::Visit, BinOp, Expr, ExprBinary, ExprParen, ExprPath, ExprUnary, Lit};
+use syn::{
+    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprParen, ExprPath, ExprRange, ExprUnary,
+    Lit,
+};
 
 use std::{cmp::Ordering, collections::BTreeMap};
 
 use super::{operator::Operator, Value};
 
-pub fn eval(ctx: &BTreeMap<&str, &syn::Expr>, expr: &Expr) -> Option<Value> {
+pub fn eval(ctx: &BTreeMap<String, syn::Expr>, expr: &Expr) -> Option<Value> {
     Reflect::new(ctx).eval(expr)
 }
 
@@ -15,7 +18,7 @@ enum Output {
 }
 
 struct Reflect<'a> {
-    ctx: &'a BTreeMap<&'a str, &'a syn::Expr>,
+    ctx: &'a BTreeMap<String, syn::Expr>,
     operators: Vec<Operator>,
     output: Vec<Output>,
     on_err: bool,
@@ -46,7 +49,7 @@ macro_rules! on_err {
 }
 
 impl<'a> Reflect<'a> {
-    fn new<'n>(ctx: &'n BTreeMap<&'n str, &'n syn::Expr>) -> Reflect<'n> {
+    fn new(ctx: &BTreeMap<String, syn::Expr>) -> Reflect {
         Reflect {
             ctx,
             operators: vec![],
@@ -65,7 +68,7 @@ impl<'a> Reflect<'a> {
                 self.operators
                     .drain(..)
                     .rev()
-                    .map(|o| Output::Op(o))
+                    .map(Output::Op)
                     .collect::<Vec<Output>>(),
             );
             evaluate(self.output).ok()
@@ -74,7 +77,7 @@ impl<'a> Reflect<'a> {
 
     fn push_op(&mut self, op: Operator) {
         on_err!(self);
-        if Operator::ParenLeft.eq_preference(&op) {
+        if Operator::ParenLeft.eq_preference(op) {
             if op == Operator::ParenRight {
                 loop {
                     if let Some(last) = self.operators.last() {
@@ -92,7 +95,7 @@ impl<'a> Reflect<'a> {
             }
         } else {
             while let Some(last) = self.operators.last() {
-                if op.gt_preference(&last) || *last == Operator::ParenLeft {
+                if op.gt_preference(*last) || *last == Operator::ParenLeft {
                     break;
                 } else {
                     self.output.push(Output::Op(self.operators.pop().unwrap()));
@@ -138,8 +141,25 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Paren(i) => self.visit_expr_paren(i),
             Path(i) => self.visit_expr_path(i),
             Unary(i) => self.visit_expr_unary(i),
+            Array(i) => self.visit_expr_array(i),
+            Range(i) => self.visit_expr_range(i),
             _ => self.on_err = true,
         }
+    }
+
+    fn visit_expr_array(&mut self, ExprArray { attrs, elems, .. }: &'a ExprArray) {
+        err_attrs!(self, attrs);
+        let mut v = Vec::with_capacity(elems.len());
+        for elem in elems {
+            if let Some(val) = Reflect::new(self.ctx).eval(elem) {
+                v.push(val)
+            } else {
+                self.on_err = true;
+                return;
+            }
+        }
+
+        self.output.push(Output::V(Value::Vec(v)));
     }
 
     fn visit_expr_binary(
@@ -171,11 +191,48 @@ impl<'a> Visit<'a> for Reflect<'a> {
     fn visit_expr_path(&mut self, ExprPath { attrs, qself, path }: &'a ExprPath) {
         err_attrs!(self, attrs);
         err_some!(self, qself);
-        let path: &str = &quote!(#path).to_string();
+        let path = quote!(#path).to_string();
         if let Some(src) = self.ctx.get(&path) {
             self.push_op(Operator::ParenLeft);
             self.visit_expr(src);
             self.push_op(Operator::ParenRight);
+        } else {
+            self.on_err = true;
+        }
+    }
+
+    fn visit_expr_range(
+        &mut self,
+        ExprRange {
+            attrs, from, to, ..
+        }: &'a ExprRange,
+    ) {
+        err_attrs!(self, attrs);
+        if let Some(range) = from
+            .as_ref()
+            .and_then(|from| Reflect::new(self.ctx).eval(&*from))
+            .and_then(|from| {
+                if let Value::Int(from) = from {
+                    Some(from)
+                } else {
+                    None
+                }
+            })
+            .and_then(|from| {
+                to.as_ref()
+                    .and_then(|to| {
+                        Reflect::new(self.ctx).eval(&*to).and_then(|to| {
+                            if let Value::Int(to) = to {
+                                Some(to)
+                            } else {
+                                None
+                            }
+                        })
+                    })
+                    .map(|to| from..to)
+            })
+        {
+            self.output.push(Output::V(Value::Range(range)));
         } else {
             self.on_err = true;
         }
@@ -194,7 +251,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
                 self.push_op(Operator::Neg);
                 self.output.push(Output::V(Value::Int(0)));
             }
-            _ => return self.on_err = true,
+            _ => self.on_err = true,
         }
     }
 
@@ -210,6 +267,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
                 _ => self.on_err = true,
             },
             Bool(a) => self.output.push(Output::V(Value::Bool(a.value))),
+            Str(a) => self.output.push(Output::V(Value::Str(a.value()))),
             _ => self.on_err = true,
         }
     }
@@ -244,7 +302,7 @@ fn evaluate(output: Vec<Output>) -> Result<Value, ()> {
                     };
                 }
 
-                if check_op(op, &op1, &op2) {
+                if check_op(*op, &op1, &op2) {
                     use Operator::*;
                     stack.push(match op {
                         Add => op1 + op2,
@@ -279,12 +337,16 @@ fn evaluate(output: Vec<Output>) -> Result<Value, ()> {
 }
 
 #[inline]
-fn check_op(op: &Operator, op1: &Value, op2: &Value) -> bool {
+fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
     use Operator::*;
     match op1 {
         Value::Int(_) | Value::Float(_) => match op {
             Add | Sub | Mul | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
             Neg => *op2 == Value::Int(0),
+            _ => false,
+        },
+        Value::Str(_) | Value::Range(_) | Value::Vec(_) => match op {
+            Eq | Ne => op1.is_same(op2),
             _ => false,
         },
         Value::Bool(_) => match op {
@@ -366,14 +428,20 @@ mod test {
 
     #[test]
     fn test_evaluate_eq() {
-        let o_int = vec![V(Int(2)), V(Int(2)), Op(Eq)];
-        assert_eq!(evaluate(o_int).unwrap(), Bool(true));
+        let o = vec![V(Int(2)), V(Int(2)), Op(Eq)];
+        assert_eq!(evaluate(o).unwrap(), Bool(true));
 
-        let o_float = vec![V(Float(2.0)), V(Float(2.0)), Op(Eq)];
-        assert_eq!(evaluate(o_float).unwrap(), Bool(true));
+        let o = vec![V(Float(2.0)), V(Float(2.0)), Op(Eq)];
+        assert_eq!(evaluate(o).unwrap(), Bool(true));
 
-        let o_bool = vec![V(Bool(true)), V(Bool(false)), Op(Eq)];
-        assert_eq!(evaluate(o_bool).unwrap(), Bool(false));
+        let o = vec![V(Bool(true)), V(Bool(false)), Op(Eq)];
+        assert_eq!(evaluate(o).unwrap(), Bool(false));
+
+        let o = vec![V(Str("foo".into())), V(Str("foo".into())), Op(Eq)];
+        assert_eq!(evaluate(o).unwrap(), Bool(true));
+
+        let o = vec![V(Range(0..1)), V(Range(0..1)), Op(Eq)];
+        assert_eq!(evaluate(o).unwrap(), Bool(true));
     }
 
     #[test]
@@ -448,7 +516,7 @@ mod test {
         let e = parse_str::<syn::Expr>(src).unwrap();
         let mut ctx = BTreeMap::new();
         let arg = parse_str::<syn::Expr>("-1").unwrap();
-        ctx.insert("foo", &arg);
+        ctx.insert("foo".to_string(), arg);
 
         assert_eq!(eval(&ctx, &e).unwrap(), Int(-1));
     }
@@ -517,7 +585,7 @@ mod test {
         let mut ctx = BTreeMap::new();
         let arg = parse_str::<syn::Expr>("-1").unwrap();
 
-        ctx.insert("foo", &arg);
+        ctx.insert("foo".to_string(), arg);
 
         assert_eq!(eval(&ctx, &e).unwrap(), Bool(false));
 
@@ -526,7 +594,7 @@ mod test {
         let mut ctx = BTreeMap::new();
         let arg = parse_str::<syn::Expr>("-1").unwrap();
 
-        ctx.insert("foo", &arg);
+        ctx.insert("foo".to_string(), arg);
 
         assert_eq!(eval(&ctx, &e).unwrap(), Bool(false));
 
@@ -535,7 +603,7 @@ mod test {
         let mut ctx = BTreeMap::new();
         let arg = parse_str::<syn::Expr>("-1 + 1").unwrap();
 
-        ctx.insert("foo", &arg);
+        ctx.insert("foo".to_string(), arg);
 
         assert_eq!(eval(&ctx, &e).unwrap(), Int(1));
     }

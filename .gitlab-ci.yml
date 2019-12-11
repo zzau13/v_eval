@@ -5,4 +5,5 @@ test:stable:
         - rustup component add rustfmt
         - cargo check
         - cargo fmt -- --check
+        - cargo clippy --all-targets --all-features -- -D warnings
         - cargo test

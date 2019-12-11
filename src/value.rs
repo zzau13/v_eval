@@ -1,5 +1,6 @@
 use std::{
     cmp::Ordering,
+    ops::Range,
     ops::{Add, Div, Mul, Rem, Sub},
 };
 
@@ -13,6 +14,9 @@ pub enum Value {
     Bool(bool),
     Float(f64),
     Int(i64),
+    Str(String),
+    Range(Range<i64>),
+    Vec(Vec<Value>),
 }
 
 impl Value {
@@ -20,7 +24,12 @@ impl Value {
     pub fn is_same(&self, other: &Value) -> bool {
         use self::Value::*;
         match (self, other) {
-            (Float(_), Float(_)) | (Int(_), Int(_)) | (Bool(_), Bool(_)) => true,
+            (Float(_), Float(_))
+            | (Int(_), Int(_))
+            | (Bool(_), Bool(_))
+            | (Str(_), Str(_))
+            | (Range(_), Range(_))
+            | (Vec(_), Vec(_)) => true,
             _ => false,
         }
     }
@@ -66,6 +75,9 @@ impl PartialEq for Value {
             (Float(a), Float(b)) => a == b,
             (Int(a), Int(b)) => a == b,
             (Bool(a), Bool(b)) => a == b,
+            (Str(a), Str(b)) => a == b,
+            (Vec(a), Vec(b)) => a == b,
+            (Range(a), Range(b)) => a == b,
             _ => false,
         }
     }
