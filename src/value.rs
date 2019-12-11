@@ -102,6 +102,7 @@ impl Add for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a + b),
             (Int(a), Int(b)) => Int(a + b),
+            (Str(a), Str(b)) => Str(a + &b),
             _ => panic!("Not valid operation"),
         }
     }
@@ -128,6 +129,13 @@ impl Mul for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a * b),
             (Int(a), Int(b)) => Int(a * b),
+            (Int(a), Str(b)) | (Str(b), Int(a)) => {
+                if 0 < a {
+                    Str(b.repeat(a as usize))
+                } else {
+                    Str("".into())
+                }
+            }
             _ => panic!("Not valid operation"),
         }
     }

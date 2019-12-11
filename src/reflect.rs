@@ -340,12 +340,29 @@ fn evaluate(output: Vec<Output>) -> Result<Value, ()> {
 fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
     use Operator::*;
     match op1 {
-        Value::Int(_) | Value::Float(_) => match op {
-            Add | Sub | Mul | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
+        Value::Int(_) => match op {
+            Mul => match op2 {
+                Value::Str(_) => true,
+                _ => op1.is_same(op2),
+            },
+            Add | Sub | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
             Neg => *op2 == Value::Int(0),
             _ => false,
         },
-        Value::Str(_) | Value::Range(_) | Value::Vec(_) => match op {
+        Value::Float(_) => match op {
+            Add | Mul | Sub | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
+            Neg => *op2 == Value::Int(0),
+            _ => false,
+        },
+        Value::Str(_) => match op {
+            Mul => match op2 {
+                Value::Int(_) => true,
+                _ => false,
+            },
+            Add | Eq | Ne => op1.is_same(op2),
+            _ => false,
+        },
+        Value::Range(_) | Value::Vec(_) => match op {
             Eq | Ne => op1.is_same(op2),
             _ => false,
         },
@@ -376,30 +393,39 @@ mod test {
 
         let o_bool = vec![V(Bool(true)), V(Bool(false)), Op(Add)];
         assert!(evaluate(o_bool).is_err());
+
+        let o = vec![V(Str("bar".into())), V(Str("foo".into())), Op(Add)];
+        assert_eq!(evaluate(o).unwrap(), Str("barfoo".into()));
     }
 
     #[test]
     fn test_evaluate_sub() {
-        let o_int = vec![V(Int(1)), V(Int(1)), Op(Sub)];
-        assert_eq!(evaluate(o_int).unwrap(), Int(0));
+        let o = vec![V(Int(1)), V(Int(1)), Op(Sub)];
+        assert_eq!(evaluate(o).unwrap(), Int(0));
 
-        let o_float = vec![V(Float(1.0)), V(Float(1.0)), Op(Sub)];
-        assert_eq!(evaluate(o_float).unwrap(), Float(0.0));
+        let o = vec![V(Float(1.0)), V(Float(1.0)), Op(Sub)];
+        assert_eq!(evaluate(o).unwrap(), Float(0.0));
 
-        let o_bool = vec![V(Bool(true)), V(Bool(false)), Op(Sub)];
-        assert!(evaluate(o_bool).is_err());
+        let o = vec![V(Bool(true)), V(Bool(false)), Op(Sub)];
+        assert!(evaluate(o).is_err());
     }
 
     #[test]
     fn test_evaluate_mul() {
-        let o_int = vec![V(Int(1)), V(Int(1)), Op(Mul)];
-        assert_eq!(evaluate(o_int).unwrap(), Int(1));
+        let o = vec![V(Int(1)), V(Int(1)), Op(Mul)];
+        assert_eq!(evaluate(o).unwrap(), Int(1));
 
-        let o_float = vec![V(Float(1.0)), V(Float(1.0)), Op(Mul)];
-        assert_eq!(evaluate(o_float).unwrap(), Float(1.0));
+        let o = vec![V(Float(1.0)), V(Float(1.0)), Op(Mul)];
+        assert_eq!(evaluate(o).unwrap(), Float(1.0));
 
-        let o_bool = vec![V(Bool(true)), V(Bool(false)), Op(Mul)];
-        assert!(evaluate(o_bool).is_err());
+        let o = vec![V(Bool(true)), V(Bool(false)), Op(Mul)];
+        assert!(evaluate(o).is_err());
+
+        let o = vec![V(Int(2)), V(Str("foo".into())), Op(Mul)];
+        assert_eq!(evaluate(o).unwrap(), Str("foofoo".into()));
+
+        let o = vec![V(Str("foo".into())), V(Int(2)), Op(Mul)];
+        assert_eq!(evaluate(o).unwrap(), Str("foofoo".into()));
     }
 
     #[test]

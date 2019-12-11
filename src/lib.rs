@@ -118,6 +118,22 @@ mod test {
                 Value::Vec(vec![Value::Int(1), Value::Int(2)])
             ])
         );
+        assert_eq!(
+            e.eval(r#""foo" * 2 * 2"#).unwrap(),
+            Value::Str("foofoofoofoo".into())
+        );
+        assert_eq!(
+            e.eval(r#""foo" * (2 * 2 - 1 + 1)"#).unwrap(),
+            Value::Str("foofoofoofoo".into())
+        );
+        assert_eq!(
+            e.eval(r#"("foo" + "bar") * 2"#).unwrap(),
+            Value::Str("foobarfoobar".into())
+        );
+        assert_eq!(
+            e.eval(r#"("bar" + s * 2) * 2"#).unwrap(),
+            Value::Str("barfoofoobarfoofoo".into())
+        );
 
         Ok(())
     }
