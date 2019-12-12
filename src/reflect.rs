@@ -312,6 +312,9 @@ impl<'a> Visit<'a> for Reflect<'a> {
             },
             Bool(a) => self.output.push(Output::V(Value::Bool(a.value))),
             Str(a) => self.output.push(Output::V(Value::Str(a.value()))),
+            Char(a) => self
+                .output
+                .push(Output::V(Value::Str(a.value().to_string()))),
             _ => self.on_err = true,
         }
     }
