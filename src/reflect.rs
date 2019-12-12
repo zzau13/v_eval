@@ -2,7 +2,7 @@ use std::{cmp::Ordering, collections::BTreeMap, convert::TryFrom, ops};
 
 use syn::{
     visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprIndex, ExprParen, ExprPath, ExprRange,
-    ExprUnary, Lit,
+    ExprReference, ExprUnary, Lit,
 };
 
 use super::{operator::Operator, Value};
@@ -143,6 +143,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Array(i) => self.visit_expr_array(i),
             Range(i) => self.visit_expr_range(i),
             Index(i) => self.visit_expr_index(i),
+            Reference(i) => self.visit_expr_reference(i),
             _ => self.on_err = true,
         }
     }
@@ -274,6 +275,11 @@ impl<'a> Visit<'a> for Reflect<'a> {
         } else {
             self.on_err = true;
         }
+    }
+
+    fn visit_expr_reference(&mut self, ExprReference { attrs, expr, .. }: &'a ExprReference) {
+        err_attrs!(self, attrs);
+        self.visit_expr(expr);
     }
 
     fn visit_expr_unary(&mut self, ExprUnary { attrs, op, expr }: &'a ExprUnary) {

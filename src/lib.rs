@@ -135,6 +135,7 @@ mod test {
         );
 
         assert_eq!(e.eval("[foo, 1][1]").unwrap(), Value::Int(1));
+        assert_eq!(e.eval("&[0, 1][1]").unwrap(), Value::Int(1));
 
         assert_eq!(e.eval("arr[1]").unwrap(), Value::Int(2));
 
