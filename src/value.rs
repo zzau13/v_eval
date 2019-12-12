@@ -1,10 +1,11 @@
 use std::{
     cmp::Ordering,
+    fmt::{self, Display, Formatter},
     ops::Range,
     ops::{Add, Div, Mul, Rem, Sub},
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 /// Wrapper for value
 /// implements simple operations and check types
 ///
@@ -64,6 +65,27 @@ impl Value {
         match (self, other) {
             (Bool(a), Bool(b)) => Bool(*a || *b),
             _ => panic!("Not valid operation"),
+        }
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        use self::Value::*;
+        match self {
+            Int(a) => a.fmt(f),
+            Float(a) => a.fmt(f),
+            Bool(a) => a.fmt(f),
+            Str(a) => fmt::Debug::fmt(a, f),
+            Range(a) => fmt::Debug::fmt(a, f),
+            Vec(a) => {
+                f.write_str("[")?;
+                for i in a {
+                    i.fmt(f)?;
+                    f.write_str(",")?;
+                }
+                f.write_str("]")
+            }
         }
     }
 }

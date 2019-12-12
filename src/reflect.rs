@@ -1,9 +1,9 @@
-use syn::{
-    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprParen, ExprPath, ExprRange, ExprUnary,
-    Lit,
-};
+use std::{cmp::Ordering, collections::BTreeMap, convert::TryFrom, ops};
 
-use std::{cmp::Ordering, collections::BTreeMap};
+use syn::{
+    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprIndex, ExprParen, ExprPath, ExprRange,
+    ExprUnary, Lit,
+};
 
 use super::{operator::Operator, Value};
 
@@ -112,7 +112,6 @@ impl<'a> Visit<'a> for Reflect<'a> {
     }
 
     fn visit_bin_op(&mut self, b: &'a BinOp) {
-        on_err!(self);
         use syn::BinOp::*;
         match *b {
             Add(_) => self.push_op(Operator::Add),
@@ -143,6 +142,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Unary(i) => self.visit_expr_unary(i),
             Array(i) => self.visit_expr_array(i),
             Range(i) => self.visit_expr_range(i),
+            Index(i) => self.visit_expr_index(i),
             _ => self.on_err = true,
         }
     }
@@ -151,7 +151,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
         err_attrs!(self, attrs);
         let mut v = Vec::with_capacity(elems.len());
         for elem in elems {
-            if let Some(val) = Reflect::new(self.ctx).eval(elem) {
+            if let Some(val) = eval(self.ctx, elem) {
                 v.push(val)
             } else {
                 self.on_err = true;
@@ -173,25 +173,63 @@ impl<'a> Visit<'a> for Reflect<'a> {
     ) {
         err_attrs!(self, attrs);
         self.visit_expr(left);
-        on_err!(self);
         self.visit_bin_op(op);
-        on_err!(self);
         self.visit_expr(right);
+    }
+
+    fn visit_expr_index(
+        &mut self,
+        ExprIndex {
+            attrs, expr, index, ..
+        }: &'a ExprIndex,
+    ) {
+        err_attrs!(self, attrs);
+        use syn::Expr::*;
+        match **expr {
+            Paren(_) | Lit(_) | Array(_) | Path(_) => match eval(self.ctx, &*expr) {
+                Some(Value::Vec(a)) => {
+                    match eval(self.ctx, index)
+                        .and_then(|v| match v {
+                            Value::Int(i) => TryFrom::try_from(i).ok(),
+                            _ => None,
+                        })
+                        .and_then(|i: usize| a.get(i))
+                    {
+                        Some(i) => self.output.push(Output::V(i.to_owned())),
+                        _ => self.on_err = true,
+                    }
+                }
+                Some(Value::Str(a)) => {
+                    match eval(self.ctx, index)
+                        .and_then(|v| match v {
+                            Value::Range(i) => TryFrom::try_from(i.start).ok().and_then(|start| {
+                                TryFrom::try_from(i.end).ok().map(|end| start..end)
+                            }),
+                            _ => None,
+                        })
+                        .and_then(|i: ops::Range<usize>| a.get(i))
+                    {
+                        Some(i) => self.output.push(Output::V(Value::Str(i.to_owned()))),
+                        _ => self.on_err = true,
+                    }
+                }
+                _ => self.on_err = true,
+            },
+            _ => self.on_err = true,
+        }
     }
 
     fn visit_expr_paren(&mut self, ExprParen { attrs, expr, .. }: &'a ExprParen) {
         err_attrs!(self, attrs);
         self.push_op(Operator::ParenLeft);
-        on_err!(self);
         self.visit_expr(expr);
-        on_err!(self);
         self.push_op(Operator::ParenRight);
     }
 
     fn visit_expr_path(&mut self, ExprPath { attrs, qself, path }: &'a ExprPath) {
         err_attrs!(self, attrs);
         err_some!(self, qself);
-        let path = quote!(#path).to_string();
+        let path = quote::quote!(#path).to_string();
         if let Some(src) = self.ctx.get(&path) {
             self.push_op(Operator::ParenLeft);
             self.visit_expr(src);

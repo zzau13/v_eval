@@ -19,12 +19,9 @@
 //!# }
 //! ```
 //!
-#[macro_use]
-extern crate quote;
+use std::collections::BTreeMap;
 
 use syn::parse_str;
-
-use std::collections::BTreeMap;
 
 mod operator;
 mod reflect;
@@ -74,12 +71,14 @@ impl Eval {
 mod test {
     use super::*;
 
+    #[allow(clippy::cognitive_complexity)]
     #[test]
     fn test() -> Result<(), ()> {
         let e = Eval::default()
             .insert("foo", "true")?
             .insert("fon", "1")?
             .insert("s", r#""foo""#)?
+            .insert("arr", "[1, 2]")?
             .insert("bar", "false")?;
 
         assert_eq!(e.eval("foo != bar").unwrap(), Value::Bool(true));
@@ -134,6 +133,32 @@ mod test {
             e.eval(r#"("bar" + s * 2) * 2"#).unwrap(),
             Value::Str("barfoofoobarfoofoo".into())
         );
+
+        assert_eq!(e.eval("[foo, 1][1]").unwrap(), Value::Int(1));
+
+        assert_eq!(e.eval("arr[1]").unwrap(), Value::Int(2));
+
+        assert_eq!(e.eval("arr[1] + 1").unwrap(), Value::Int(3));
+
+        assert_eq!(e.eval("2 * arr[1] + 1").unwrap(), Value::Int(5));
+
+        assert!(e.eval("arr[2]").is_none());
+        assert!(e.eval("[foo, 1][2]").is_none());
+
+        assert_eq!(e.eval(r#""bar"[0..1]"#).unwrap(), Value::Str("b".into()));
+
+        assert_eq!(
+            e.eval(r#"("bar" * 2)[3..4]"#).unwrap(),
+            Value::Str("b".into())
+        );
+
+        assert_eq!(
+            e.eval("[foo, [1, 2]]").unwrap().to_string(),
+            "[true,[1,2,],]"
+        );
+
+        assert_eq!(e.eval(r#""foo""#).unwrap().to_string(), r#""foo""#,);
+        assert_eq!(e.eval("0..1").unwrap().to_string(), "0..1");
 
         Ok(())
     }
