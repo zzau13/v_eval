@@ -1,6 +1,6 @@
 [package]
 name = "v_eval"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Juan Aguilar Santillana <mhpoin@gmail.com>"]
 description = "Expression evaluator with context"
 documentation = "https://docs.rs/v_eval"
@@ -15,5 +15,5 @@ gitlab = { repository = "r-iendo/v_eval" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-syn = { version = "1.0", features = ["visit", "full"] }
-quote = "1.0"
+quote-impersonated = "0.1"
+syn-impersonated = { version="0.1", features = ["full", "visit"] }

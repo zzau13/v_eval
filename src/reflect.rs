@@ -24,14 +24,6 @@ struct Reflect<'a> {
     on_err: bool,
 }
 
-macro_rules! err_attrs {
-    ($_self:ident, $attrs:expr) => {
-        if !$attrs.is_empty() {
-            return $_self.on_err = true;
-        }
-    };
-}
-
 macro_rules! err_some {
     ($_self:ident, $some:expr) => {
         if $some.is_some() {
@@ -148,8 +140,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
     }
 
-    fn visit_expr_array(&mut self, ExprArray { attrs, elems, .. }: &'a ExprArray) {
-        err_attrs!(self, attrs);
+    fn visit_expr_array(&mut self, ExprArray { elems, .. }: &'a ExprArray) {
         let mut v = Vec::with_capacity(elems.len());
         for elem in elems {
             if let Some(val) = eval(self.ctx, elem) {
@@ -166,37 +157,33 @@ impl<'a> Visit<'a> for Reflect<'a> {
     fn visit_expr_binary(
         &mut self,
         ExprBinary {
-            attrs,
-            left,
-            op,
-            right,
+            left, op, right, ..
         }: &'a ExprBinary,
     ) {
-        err_attrs!(self, attrs);
         self.visit_expr(left);
         self.visit_bin_op(op);
         self.visit_expr(right);
     }
 
-    fn visit_expr_index(
-        &mut self,
-        ExprIndex {
-            attrs, expr, index, ..
-        }: &'a ExprIndex,
-    ) {
-        err_attrs!(self, attrs);
+    fn visit_expr_index(&mut self, ExprIndex { expr, index, .. }: &'a ExprIndex) {
         use syn::Expr::*;
         match **expr {
             Paren(_) | Lit(_) | Array(_) | Path(_) => match eval(self.ctx, &*expr) {
                 Some(Value::Vec(a)) => {
-                    match eval(self.ctx, index)
-                        .and_then(|v| match v {
-                            Value::Int(i) => TryFrom::try_from(i).ok(),
-                            _ => None,
-                        })
-                        .and_then(|i: usize| a.get(i))
-                    {
-                        Some(i) => self.output.push(Output::V(i.to_owned())),
+                    match eval(self.ctx, index).and_then(|v| match v {
+                        Value::Int(i) => TryFrom::try_from(i)
+                            .ok()
+                            .and_then(|i: usize| a.get(i).cloned()),
+                        Value::Range(i) => TryFrom::try_from(i.start)
+                            .and_then(|start| {
+                                TryFrom::try_from(i.end).map(|end| ops::Range { start, end })
+                            })
+                            .ok()
+                            .and_then(|i: ops::Range<usize>| a.get(i))
+                            .map(|x| Value::Vec(x.to_vec())),
+                        _ => None,
+                    }) {
+                        Some(i) => self.output.push(Output::V(i)),
                         _ => self.on_err = true,
                     }
                 }
@@ -220,15 +207,13 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
     }
 
-    fn visit_expr_paren(&mut self, ExprParen { attrs, expr, .. }: &'a ExprParen) {
-        err_attrs!(self, attrs);
+    fn visit_expr_paren(&mut self, ExprParen { expr, .. }: &'a ExprParen) {
         self.push_op(Operator::ParenLeft);
         self.visit_expr(expr);
         self.push_op(Operator::ParenRight);
     }
 
-    fn visit_expr_path(&mut self, ExprPath { attrs, qself, path }: &'a ExprPath) {
-        err_attrs!(self, attrs);
+    fn visit_expr_path(&mut self, ExprPath { qself, path, .. }: &'a ExprPath) {
         err_some!(self, qself);
         let path = quote::quote!(#path).to_string();
         if let Some(src) = self.ctx.get(&path) {
@@ -240,13 +225,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
     }
 
-    fn visit_expr_range(
-        &mut self,
-        ExprRange {
-            attrs, from, to, ..
-        }: &'a ExprRange,
-    ) {
-        err_attrs!(self, attrs);
+    fn visit_expr_range(&mut self, ExprRange { from, to, .. }: &'a ExprRange) {
         if let Some(range) = from
             .as_ref()
             .and_then(|from| Reflect::new(self.ctx).eval(&*from))
@@ -277,13 +256,11 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
     }
 
-    fn visit_expr_reference(&mut self, ExprReference { attrs, expr, .. }: &'a ExprReference) {
-        err_attrs!(self, attrs);
+    fn visit_expr_reference(&mut self, ExprReference { expr, .. }: &'a ExprReference) {
         self.visit_expr(expr);
     }
 
-    fn visit_expr_unary(&mut self, ExprUnary { attrs, op, expr }: &'a ExprUnary) {
-        err_attrs!(self, attrs);
+    fn visit_expr_unary(&mut self, ExprUnary { op, expr, .. }: &'a ExprUnary) {
         self.visit_expr(expr);
         use syn::UnOp::*;
         match op {
@@ -425,10 +402,11 @@ fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
 mod test {
     use syn::parse_str;
 
-    use super::super::operator::Operator::*;
-    use super::super::Value::*;
-    use super::Output::*;
-    use super::*;
+    use super::{
+        super::{operator::Operator::*, Value::*},
+        Output::*,
+        *,
+    };
 
     #[test]
     fn test_evaluate_add() {

@@ -19,6 +19,9 @@
 //!# }
 //! ```
 //!
+extern crate quote_impersonated as quote;
+extern crate syn_impersonated as syn;
+
 use std::collections::BTreeMap;
 
 use syn::parse_str;
@@ -27,8 +30,7 @@ mod operator;
 mod reflect;
 mod value;
 
-pub use self::reflect::eval;
-pub use self::value::Value;
+pub use self::{reflect::eval, value::Value};
 
 /// Evaluator with context
 pub struct Eval(BTreeMap<String, syn::Expr>);

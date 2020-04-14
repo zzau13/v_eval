@@ -1,8 +1,7 @@
 use std::{
     cmp::Ordering,
     fmt::{self, Display, Formatter},
-    ops::Range,
-    ops::{Add, Div, Mul, Rem, Sub},
+    ops::{Add, Div, Mul, Range, Rem, Sub},
 };
 
 #[derive(Clone, Debug)]
