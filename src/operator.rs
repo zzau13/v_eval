@@ -1,3 +1,5 @@
+use crate::reflect::Eval;
+use crate::Value;
 use std::cmp::Ordering;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -44,6 +46,95 @@ impl Operator {
             Ordering::Equal => true,
             _ => false,
         }
+    }
+}
+
+impl Eval for Operator {
+    fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
+        let op2 = stack.pop().ok_or(())?;
+        let op1 = stack.pop().ok_or(())?;
+
+        macro_rules! _i {
+                    ($a:ident for $e:path) => {
+                        $a == $e
+                    };
+                    ($a:ident for $e:path | $($t:tt)+) => {
+                        $a == $e || _i!($a for $($t)+)
+                    };
+                }
+
+        macro_rules! order {
+                    ($($t:tt)+) => {
+                        if let Some(a) = op1.partial_cmp(&op2) {
+                            Value::Bool(_i!(a for $($t)+))
+                        } else {
+                            return Err(());
+                        }
+                    };
+                }
+
+        if check_op(self, &op1, &op2) {
+            use Operator::*;
+            stack.push(match self {
+                Add => op1 + op2,
+                Sub => op1 - op2,
+                Mul => op1 * op2,
+                Div => op1 / op2,
+                Rem => op1 % op2,
+                Eq => Value::Bool(op1 == op2),
+                Ne => Value::Bool(op1 != op2),
+                Gt => order!(Ordering::Greater),
+                Ge => order!(Ordering::Greater | Ordering::Equal),
+                Lt => order!(Ordering::Less),
+                Le => order!(Ordering::Less | Ordering::Equal),
+                And => op1.and(&op2),
+                Or => op1.or(&op2),
+                Not => op1.not(),
+                Neg => op1.neg(),
+                ParenLeft | ParenRight => unreachable!(),
+            });
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+}
+
+#[inline]
+fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
+    use Operator::*;
+    match op1 {
+        Value::Int(_) => match op {
+            Mul => match op2 {
+                Value::Str(_) => true,
+                _ => op1.is_same(op2),
+            },
+            Add | Sub | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
+            Neg => *op2 == Value::Int(0),
+            _ => false,
+        },
+        Value::Float(_) => match op {
+            Add | Mul | Sub | Div | Rem | Eq | Ne | Gt | Ge | Lt | Le => op1.is_same(op2),
+            Neg => *op2 == Value::Int(0),
+            _ => false,
+        },
+        Value::Str(_) => match op {
+            Mul => match op2 {
+                Value::Int(_) => true,
+                _ => false,
+            },
+            Add | Eq | Ne => op1.is_same(op2),
+            _ => false,
+        },
+        Value::Range(_) | Value::Vec(_) => match op {
+            Eq | Ne => op1.is_same(op2),
+            _ => false,
+        },
+        Value::Bool(_) => match op {
+            Eq | Ne | And | Or => op1.is_same(op2),
+            Not => *op2 == Value::Bool(false),
+            _ => false,
+        },
     }
 }
 
