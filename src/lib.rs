@@ -26,6 +26,7 @@ use std::collections::BTreeMap;
 
 use syn::parse_str;
 
+mod method;
 mod operator;
 mod reflect;
 mod value;
@@ -162,6 +163,13 @@ mod test {
 
         assert_eq!(e.eval(r#""foo""#).unwrap().to_string(), r#""foo""#,);
         assert_eq!(e.eval("0..1").unwrap().to_string(), "0..1");
+
+        assert_eq!(e.eval("1.log10()").unwrap(), Value::Float(1.0f64.log10()));
+
+        assert_eq!(
+            e.eval("1.log10() + 2.0").unwrap(),
+            Value::Float(1.0f64.log10() + 2.0)
+        );
 
         Ok(())
     }
