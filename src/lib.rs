@@ -15,6 +15,7 @@
 //! );
 //! assert_eq!(e.eval("1 == 1 != bar").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("1 == 1 + 1 == bar").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("1.0.trunc()").unwrap(), Value::Int(1));
 //!# Ok(())
 //!# }
 //! ```

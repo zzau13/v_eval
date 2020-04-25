@@ -1,6 +1,6 @@
-use crate::reflect::Eval;
-use crate::Value;
 use std::cmp::Ordering;
+
+use crate::{reflect::Eval, Value};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]

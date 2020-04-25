@@ -157,7 +157,11 @@ impl Eval for Fun {
             Tanh => fun!(tanh, unpack, stack),
             ToDegrees => fun!(to_degrees, unpack, stack),
             ToRadians => fun!(to_radians, unpack, stack),
-            Trunc => fun!(trunc, unpack, stack),
+            Trunc => {
+                let v = fun!(trunc, unpack, stack) as i64;
+                stack.push(Value::Int(v));
+                return Ok(());
+            }
         };
         stack.push(Value::Float(e));
         Ok(())
