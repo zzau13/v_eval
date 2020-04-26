@@ -108,22 +108,9 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.on_err = true;
     }
 
-    fn visit_bin_op(&mut self, b: &'a BinOp) {
-        use syn::BinOp::*;
-        match *b {
-            Add(_) => self.push_op(Operator::Add),
-            Sub(_) => self.push_op(Operator::Sub),
-            Mul(_) => self.push_op(Operator::Mul),
-            Div(_) => self.push_op(Operator::Div),
-            Rem(_) => self.push_op(Operator::Rem),
-            And(_) => self.push_op(Operator::And),
-            Or(_) => self.push_op(Operator::Or),
-            Eq(_) => self.push_op(Operator::Eq),
-            Ne(_) => self.push_op(Operator::Ne),
-            Lt(_) => self.push_op(Operator::Lt),
-            Le(_) => self.push_op(Operator::Le),
-            Gt(_) => self.push_op(Operator::Gt),
-            Ge(_) => self.push_op(Operator::Ge),
+    fn visit_bin_op(&mut self, op: &'a BinOp) {
+        match TryFrom::try_from(*op) {
+            Ok(op) => self.push_op(op),
             _ => self.on_err = true,
         }
     }

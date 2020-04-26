@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, convert::TryFrom};
 
 use crate::{reflect::Eval, Value};
 
@@ -45,6 +45,30 @@ impl Operator {
         match self.preference(o) {
             Ordering::Equal => true,
             _ => false,
+        }
+    }
+}
+
+impl TryFrom<syn::BinOp> for Operator {
+    type Error = ();
+
+    fn try_from(value: syn::BinOp) -> Result<Self, Self::Error> {
+        use syn::BinOp::*;
+        match value {
+            Add(_) => Ok(Operator::Add),
+            Sub(_) => Ok(Operator::Sub),
+            Mul(_) => Ok(Operator::Mul),
+            Div(_) => Ok(Operator::Div),
+            Rem(_) => Ok(Operator::Rem),
+            And(_) => Ok(Operator::And),
+            Or(_) => Ok(Operator::Or),
+            Eq(_) => Ok(Operator::Eq),
+            Ne(_) => Ok(Operator::Ne),
+            Lt(_) => Ok(Operator::Lt),
+            Le(_) => Ok(Operator::Le),
+            Gt(_) => Ok(Operator::Gt),
+            Ge(_) => Ok(Operator::Ge),
+            _ => Err(()),
         }
     }
 }
