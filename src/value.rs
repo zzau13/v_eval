@@ -109,6 +109,7 @@ impl PartialEq for Value {
             (Str(a), Str(b)) => a == b,
             (Vec(a), Vec(b)) => a == b,
             (Range(a), Range(b)) => a == b,
+            (Option(a), Option(b)) => a == b,
             _ => false,
         }
     }
