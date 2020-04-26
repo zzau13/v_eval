@@ -17,10 +17,13 @@
 //! assert_eq!(e.eval("1 == 1 + 1 == bar").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("1.5.trunc()").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("50.log10().trunc() == 1").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("Some(1.log10()).unwrap()").unwrap(), Value::Float(1.0f64.log10()));
+//!
 //!# Ok(())
 //!# }
 //! ```
 //!
+extern crate quote_impersonated as quote;
 extern crate syn_impersonated as syn;
 
 use std::collections::BTreeMap;
@@ -173,5 +176,18 @@ mod test {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_opt() {
+        let e = Eval::default();
+        assert_eq!(
+            e.eval("Some(1.log10()).unwrap()").unwrap(),
+            Value::Float(1.0f64.log10())
+        );
+        assert_eq!(
+            e.eval("None.unwrap_or(1.log10())"),
+            Some(Value::Float(1.0f64.log10()))
+        );
     }
 }
