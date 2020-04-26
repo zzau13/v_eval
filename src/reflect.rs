@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops};
 
-use quote::quote;
 use syn::{
     visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprIndex, ExprMethodCall, ExprParen,
     ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
@@ -226,7 +225,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.push_op(Operator::ParenLeft);
         self.visit_expr(receiver);
         self.push_op(Operator::ParenRight);
-        let method: &str = &quote!(#method).to_string();
+        let method: &str = &method.to_string();
         let method = match method.parse() {
             Ok(m) => Method::F64(m),
             Err(_) => return self.on_err = true,
@@ -255,7 +254,10 @@ impl<'a> Visit<'a> for Reflect<'a> {
 
     fn visit_expr_path(&mut self, ExprPath { qself, path, .. }: &'a ExprPath) {
         err_some!(self, qself);
-        let path = quote::quote!(#path).to_string();
+        let path = match path.get_ident() {
+            Some(i) => i.to_string(),
+            _ => return self.on_err = true,
+        };
         if let Some(src) = self.ctx.get(&path) {
             self.push_op(Operator::ParenLeft);
             self.visit_expr(src);
