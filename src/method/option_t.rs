@@ -45,7 +45,7 @@ macro_rules! unpack {
     ($e:expr) => {
         match $e {
             Value::Option(x) => *x,
-            _ => return Err(()),
+            v => Some(v),
         }
     };
 }

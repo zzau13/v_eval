@@ -23,6 +23,7 @@
 //! assert_eq!(e.eval("not_exist.unwrap_or(1)").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("opt.xor(Some(1))").unwrap(), Value::Option(Box::new(None)));
 //! assert_eq!(e.eval("not_exist.and(Some(1)).is_some()").unwrap(), Value::Bool(false));
+//! assert_eq!(e.eval("foo.unwrap_or(false)").unwrap(), Value::Bool(true));
 //!
 //!# Ok(())
 //!# }
