@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops};
 
 use syn::{
-    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprIndex, ExprMethodCall, ExprParen,
-    ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
+    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprCall, ExprIndex, ExprMethodCall,
+    ExprParen, ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
 };
 
 use crate::{
@@ -82,7 +82,8 @@ impl<'a> Reflect<'a> {
                             self.operators.pop();
                             break;
                         }
-                        self.output.push(Output::Op(self.operators.pop().unwrap()));
+                        self.output
+                            .push(Output::Op(self.operators.pop().expect("Some operator")));
                     } else {
                         break self.on_err = true;
                     }
@@ -95,7 +96,8 @@ impl<'a> Reflect<'a> {
                 if op.gt_preference(*last) || *last == Operator::ParenLeft {
                     break;
                 } else {
-                    self.output.push(Output::Op(self.operators.pop().unwrap()));
+                    self.output
+                        .push(Output::Op(self.operators.pop().expect("Some Operator")));
                 }
             }
             self.operators.push(op);
@@ -129,6 +131,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Index(i) => self.visit_expr_index(i),
             Reference(i) => self.visit_expr_reference(i),
             MethodCall(i) => self.visit_expr_method_call(i),
+            Call(i) => self.visit_expr_call(i),
             _ => self.on_err = true,
         }
     }
@@ -146,6 +149,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
 
         self.output.push(Output::V(Value::Vec(v)));
     }
+
     fn visit_expr_binary(
         &mut self,
         ExprBinary {
@@ -155,6 +159,21 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.visit_expr(left);
         self.visit_bin_op(op);
         self.visit_expr(right);
+    }
+
+    fn visit_expr_call(&mut self, ExprCall { func, args, .. }: &'a ExprCall) {
+        let func = &quote::quote!(#func).to_string();
+        if func == "Some" {
+            if args.len() != 1 {
+                return self.on_err = true;
+            }
+            if let Some(v) = Reflect::new(self.ctx).eval(&args[0]) {
+                self.output
+                    .push(Output::V(Value::Option(Box::new(Some(v)))));
+                return;
+            }
+        }
+        self.on_err = true;
     }
 
     fn visit_expr_index(&mut self, ExprIndex { expr, index, .. }: &'a ExprIndex) {
@@ -215,7 +234,10 @@ impl<'a> Visit<'a> for Reflect<'a> {
         let method: &str = &method.to_string();
         let method = match method.parse() {
             Ok(m) => Method::F64(m),
-            Err(_) => return self.on_err = true,
+            Err(_) => match method.parse() {
+                Ok(m) => Method::Option(m),
+                Err(_) => return self.on_err = true,
+            },
         };
         if method.has_arg() {
             if args.len() != 1 {
@@ -245,6 +267,12 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Some(i) => i.to_string(),
             _ => return self.on_err = true,
         };
+
+        if path.as_str() == "None" {
+            self.output.push(Output::V(Value::Option(Box::new(None))));
+            return;
+        }
+
         if let Some(src) = self.ctx.get(&path) {
             self.push_op(Operator::ParenLeft);
             self.visit_expr(src);

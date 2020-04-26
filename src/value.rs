@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    fmt::{self, Display, Formatter},
+    fmt::{self, Display, Formatter, Write},
     ops::{Add, Div, Mul, Range, Rem, Sub},
 };
 
@@ -17,6 +17,7 @@ pub enum Value {
     Str(String),
     Range(Range<i64>),
     Vec(Vec<Value>),
+    Option(Box<Option<Value>>),
 }
 
 impl Value {
@@ -29,7 +30,8 @@ impl Value {
             | (Bool(_), Bool(_))
             | (Str(_), Str(_))
             | (Range(_), Range(_))
-            | (Vec(_), Vec(_)) => true,
+            | (Vec(_), Vec(_))
+            | (Option(_), Option(_)) => true,
             _ => false,
         }
     }
@@ -85,6 +87,14 @@ impl Display for Value {
                 }
                 f.write_str("]")
             }
+            Option(a) => match &**a {
+                Some(a) => {
+                    f.write_str("Some(")?;
+                    a.fmt(f)?;
+                    f.write_char(')')
+                }
+                None => f.write_str("None"),
+            },
         }
     }
 }

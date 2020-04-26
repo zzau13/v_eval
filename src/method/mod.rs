@@ -16,6 +16,7 @@ macro_rules! fun {
 }
 
 pub mod f64_t;
+pub mod option_t;
 
 pub(crate) trait HasArg: Copy {
     fn has_arg(self) -> bool;
@@ -24,6 +25,7 @@ pub(crate) trait HasArg: Copy {
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum Method {
     F64(f64_t::Fun),
+    Option(option_t::Fun),
 }
 
 use Method::*;
@@ -32,6 +34,7 @@ impl Eval for Method {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         match self {
             F64(f) => f.eval(stack),
+            Option(f) => f.eval(stack),
         }
     }
 }
@@ -40,6 +43,7 @@ impl HasArg for Method {
     fn has_arg(self) -> bool {
         match self {
             F64(f) => f.has_arg(),
+            Option(f) => f.has_arg(),
         }
     }
 }

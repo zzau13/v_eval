@@ -159,6 +159,7 @@ fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
             Not => *op2 == Value::Bool(false),
             _ => false,
         },
+        Value::Option(_) => false,
     }
 }
 

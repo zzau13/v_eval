@@ -173,18 +173,3 @@ impl HasArg for Fun {
         (self as u8).leading_zeros() as u8 == L
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn test() {
-        assert!(!Fun::ToRadians.has_arg());
-        assert!(!Fun::Recip.has_arg());
-        assert!(!Fun::Asin.has_arg());
-        assert!(!Fun::Floor.has_arg());
-        assert!(Fun::PowI.has_arg());
-        assert!(Fun::PowF.has_arg());
-        assert!(Fun::Min.has_arg());
-    }
-}
