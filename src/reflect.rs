@@ -232,12 +232,14 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.visit_expr(receiver);
         self.push_op(Operator::ParenRight);
         let method: &str = &method.to_string();
-        let method = match method.parse() {
-            Ok(m) => Method::F64(m),
-            Err(_) => match method.parse() {
-                Ok(m) => Method::Option(m),
-                Err(_) => return self.on_err = true,
-            },
+        let method = match method.parse().map(Method::F64).or_else(|_| {
+            method
+                .parse()
+                .map(Method::DynType)
+                .or_else(|_| method.parse().map(Method::Option))
+        }) {
+            Ok(m) => m,
+            Err(_) => return self.on_err = true,
         };
         if method.has_arg() {
             if args.len() != 1 {

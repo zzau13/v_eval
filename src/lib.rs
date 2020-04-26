@@ -6,6 +6,7 @@
 //!# fn main() -> Result<(), ()> {
 //! let e = Eval::default()
 //!     .insert("foo", "true")?
+//!     .insert("string", "\"foo\"")?
 //!     .insert("opt", "Some(true)")?
 //!     .insert("bar", "false")?;
 //!
@@ -16,14 +17,24 @@
 //! );
 //! assert_eq!(e.eval("1 == 1 != bar").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("1 == 1 + 1 == bar").unwrap(), Value::Bool(true));
+//!
 //! assert_eq!(e.eval("1.5.trunc()").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("50.log10().trunc() == 1").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("Some(1.log10()).unwrap()").unwrap(), Value::Float(1.0f64.log10()));
+//!
+//! // Option by default
 //! assert_eq!(e.eval("None.unwrap()"), None);
 //! assert_eq!(e.eval("not_exist.unwrap_or(1)").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("opt.xor(Some(1))").unwrap(), Value::Option(Box::new(None)));
 //! assert_eq!(e.eval("not_exist.and(Some(1)).is_some()").unwrap(), Value::Bool(false));
 //! assert_eq!(e.eval("foo.unwrap_or(false)").unwrap(), Value::Bool(true));
+//!
+//! // Dynamic type checked
+//! assert_eq!(e.eval("foo.is_bool()").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("string.is_bool()").unwrap(), Value::Bool(false));
+//! assert_eq!(e.eval("string.is_vec()").unwrap(), Value::Bool(false));
+//! assert_eq!(e.eval("foo.is_same(bar)").unwrap(), Value::Bool(true));
+//!
 //!
 //!# Ok(())
 //!# }
