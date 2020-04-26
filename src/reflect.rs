@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops};
 
 use syn::{
-    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprCall, ExprIndex, ExprMethodCall,
-    ExprParen, ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
+    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprCall, ExprField, ExprIndex,
+    ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
 };
 
 use crate::{
@@ -132,8 +132,13 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Reference(i) => self.visit_expr_reference(i),
             MethodCall(i) => self.visit_expr_method_call(i),
             Call(i) => self.visit_expr_call(i),
+            Field(i) => self.visit_expr_field(i),
             _ => self.on_err = true,
         }
+    }
+
+    fn visit_expr_field(&mut self, _: &'a ExprField) {
+        self.output.push(Output::V(Value::Option(Box::new(None))));
     }
 
     fn visit_expr_array(&mut self, ExprArray { elems, .. }: &'a ExprArray) {
