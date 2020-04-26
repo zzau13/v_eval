@@ -1,4 +1,4 @@
-//! Evaluate some [syn::Expr](https://docs.rs/syn/0.15.29/syn/enum.Expr.html) with context
+//! Evaluate some expresions with context
 //!
 //! ```rust
 //! use v_eval::{Value, Eval};

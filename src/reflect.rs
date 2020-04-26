@@ -232,15 +232,21 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.visit_expr(receiver);
         self.push_op(Operator::ParenRight);
         let method: &str = &method.to_string();
-        let method = match method.parse().map(Method::F64).or_else(|_| {
-            method
-                .parse()
-                .map(Method::DynType)
-                .or_else(|_| method.parse().map(Method::Option))
-        }) {
-            Ok(m) => m,
-            Err(_) => return self.on_err = true,
-        };
+        macro_rules! parse {
+            ($p:path) => {
+                match method.parse().map($p) {
+                    Ok(m) => m,
+                    Err(_) => return self.on_err = true,
+                }
+            };
+            ($p:path, $($t:tt)+) => {
+                match method.parse().map($p) {
+                    Ok(m) => m,
+                    Err(_) => parse!($($t)+)
+                }
+            };
+        }
+        let method = parse!(Method::F64, Method::DynType, Method::Option);
         if method.has_arg() {
             if args.len() != 1 {
                 return self.on_err = true;
