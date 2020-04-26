@@ -278,7 +278,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             self.visit_expr(src);
             self.push_op(Operator::ParenRight);
         } else {
-            self.on_err = true;
+            self.output.push(Output::V(Value::Option(Box::new(None))));
         }
     }
 
