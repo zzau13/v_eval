@@ -10,7 +10,7 @@ pub(crate) enum Fun {
     IsNone,
     IsSome,
     UnWrap,
-    UnWrapOr = (1 << F),
+    UnWrapOr = 1 << F,
     And = (1 << F) + 1,
     Or = (1 << F) + 2,
     Xor = (1 << F) + 3,
