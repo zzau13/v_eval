@@ -18,6 +18,7 @@
 //! assert_eq!(e.eval("1.5.trunc()").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("50.log10().trunc() == 1").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("Some(1.log10()).unwrap()").unwrap(), Value::Float(1.0f64.log10()));
+//! assert_eq!(e.eval("None.unwrap()"), None);
 //!
 //!# Ok(())
 //!# }

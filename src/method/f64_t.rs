@@ -169,6 +169,7 @@ impl Eval for Fun {
 }
 
 impl HasArg for Fun {
+    #[inline]
     fn has_arg(self) -> bool {
         (self as u8).leading_zeros() as u8 == L
     }

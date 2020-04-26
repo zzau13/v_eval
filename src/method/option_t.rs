@@ -65,9 +65,9 @@ impl Eval for Fun {
             IsSome => bool!(is_some),
             Or => fun_arg!(or, unpack, stack),
             UnWrap => {
-                let e = fun!(unwrap, unpack, stack);
-                stack.push(e);
-                return Ok(());
+                let op1 = unpack!(stack.pop().ok_or(())?);
+
+                return op1.ok_or(()).map(|e| stack.push(e));
             }
             UnWrapOr => {
                 let op2 = stack.pop().ok_or(())?;
@@ -84,6 +84,7 @@ impl Eval for Fun {
 }
 
 impl HasArg for Fun {
+    #[inline]
     fn has_arg(self) -> bool {
         (self as u8).leading_zeros() as u8 == L
     }

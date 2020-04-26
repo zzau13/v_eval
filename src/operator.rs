@@ -30,6 +30,7 @@ pub(super) enum Operator {
 }
 
 impl Operator {
+    #[inline]
     fn preference(self, o: Operator) -> Ordering {
         (self as u8).leading_zeros().cmp(&(o as u8).leading_zeros())
     }
