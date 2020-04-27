@@ -72,16 +72,18 @@ impl Value {
     }
 
     pub fn unwrap(self) -> Result<Self, ()> {
+        if self.is_some() {
+            Ok(self)
+        } else {
+            Err(())
+        }
+    }
+
+    pub fn is_some(&self) -> bool {
         match self {
-            Value::None => Err(()),
-            Value::Vec(a) => {
-                let mut r = Vec::with_capacity(a.len());
-                for v in a {
-                    r.push(v.unwrap()?);
-                }
-                Ok(Value::Vec(r))
-            }
-            a => Ok(a),
+            Value::None => false,
+            Value::Vec(a) => a.iter().all(|v| v.is_some()),
+            _ => true,
         }
     }
 }
