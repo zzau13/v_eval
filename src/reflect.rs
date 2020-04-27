@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn eval(ctx: &BTreeMap<String, syn::Expr>, expr: &Expr) -> Option<Value> {
-    Reflect::new(ctx).eval(expr)
+    Reflect::new(ctx).eval(expr).and_then(|v| v.unwrap().ok())
 }
 
 #[derive(Debug)]

@@ -369,7 +369,6 @@ impl Eval {
         parse_str::<syn::Expr>(src)
             .ok()
             .and_then(|src| eval(&self.0, &src))
-            .and_then(|v| v.unwrap().ok())
     }
 }
 
