@@ -68,6 +68,20 @@ impl Value {
             _ => panic!("Not valid operation"),
         }
     }
+
+    pub fn unwrap(self) -> Result<Self, ()> {
+        match self {
+            Value::Option(a) => a.ok_or(()).and_then(|a| a.unwrap()),
+            Value::Vec(a) => {
+                let mut r = Vec::with_capacity(a.len());
+                for v in a {
+                    r.push(v.unwrap()?);
+                }
+                Ok(Value::Vec(r))
+            }
+            a => Ok(a),
+        }
+    }
 }
 
 impl Display for Value {

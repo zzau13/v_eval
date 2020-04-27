@@ -137,10 +137,6 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
     }
 
-    fn visit_expr_field(&mut self, _: &'a ExprField) {
-        self.output.push(Output::V(Value::Option(Box::new(None))));
-    }
-
     fn visit_expr_array(&mut self, ExprArray { elems, .. }: &'a ExprArray) {
         let mut v = Vec::with_capacity(elems.len());
         for elem in elems {
@@ -179,6 +175,10 @@ impl<'a> Visit<'a> for Reflect<'a> {
             }
         }
         self.on_err = true;
+    }
+
+    fn visit_expr_field(&mut self, _: &'a ExprField) {
+        self.output.push(Output::V(Value::Option(Box::new(None))));
     }
 
     fn visit_expr_index(&mut self, ExprIndex { expr, index, .. }: &'a ExprIndex) {
