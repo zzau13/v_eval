@@ -474,6 +474,12 @@ mod test {
             Value::Float(1.0f64.log10() + 2.0)
         );
 
+        assert_eq!(e.eval("&[true, not_exist]"), None);
+        assert_eq!(e.eval("&[true, None]"), None);
+        assert_eq!(e.eval("&[\"foo\", None, None]"), None);
+        assert_eq!(e.eval("not_exist"), None);
+        assert_eq!(e.eval(r#"&[ "foo", self.s]"#), None);
+
         Ok(())
     }
 
