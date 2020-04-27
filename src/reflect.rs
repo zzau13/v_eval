@@ -233,9 +233,12 @@ impl<'a> Visit<'a> for Reflect<'a> {
             ..
         }: &'a ExprMethodCall,
     ) {
-        self.push_op(Operator::ParenLeft);
-        self.visit_expr(receiver);
-        self.push_op(Operator::ParenRight);
+        if let Some(v) = Reflect::new(self.ctx).eval(receiver) {
+            self.output.push(Output::V(v));
+        } else {
+            return self.on_err = true;
+        }
+
         let method: &str = &method.to_string();
         macro_rules! parse {
             ($p:path) => {
@@ -252,14 +255,17 @@ impl<'a> Visit<'a> for Reflect<'a> {
             };
         }
         let method = parse!(Method::F64, Method::DynType, Method::Option);
+
         if method.has_arg() {
             if args.len() != 1 {
                 return self.on_err = true;
             }
-            self.push_op(Operator::ParenLeft);
-            self.visit_expr(&args[0]);
-            self.push_op(Operator::ParenRight);
-            self.output.push(Output::Fn(method));
+            if let Some(v) = Reflect::new(self.ctx).eval(&args[0]) {
+                self.output.push(Output::V(v));
+                self.output.push(Output::Fn(method));
+            } else {
+                self.on_err = true;
+            }
         } else {
             if !args.is_empty() {
                 return self.on_err = true;
