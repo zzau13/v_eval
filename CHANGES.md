@@ -1,5 +1,13 @@
 # CHANGES
-## [0.4.0] (2020-XX-XX)
+## [0.5.0] (2020-27-04)
+## Added
+- Option and dynamic type check
+
+## Refactor
+- Use Option by default
+- Ever unwrap value
+
+## [0.4.0] (2020-27-04)
 ## Added
 - `f64` methods
 
