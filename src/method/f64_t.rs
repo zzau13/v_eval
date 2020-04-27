@@ -114,7 +114,15 @@ macro_rules! unpack {
 }
 
 impl Eval for Fun {
+    #[allow(clippy::cognitive_complexity)]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
+        macro_rules! to_int {
+            ($fun:ident) => {{
+                let v = fun!($fun, unpack, stack) as i64;
+                stack.push(Value::Int(v));
+                return Ok(());
+            }};
+        }
         let e = match self {
             Atan2 => fun_arg!(atan2, unpack, stack),
             Hypot => fun_arg!(hypot, unpack, stack),
@@ -135,20 +143,17 @@ impl Eval for Fun {
             Atan => fun!(atan, unpack, stack),
             Atanh => fun!(atanh, unpack, stack),
             Cbrt => fun!(cbrt, unpack, stack),
-            Ceil => fun!(ceil, unpack, stack),
             Cos => fun!(cos, unpack, stack),
             Cosh => fun!(cosh, unpack, stack),
             Exp => fun!(exp, unpack, stack),
             Exp2 => fun!(exp2, unpack, stack),
             ExpM1 => fun!(exp_m1, unpack, stack),
-            Floor => fun!(floor, unpack, stack),
             Fract => fun!(fract, unpack, stack),
             Ln => fun!(ln, unpack, stack),
             Ln1p => fun!(ln_1p, unpack, stack),
             Log10 => fun!(log10, unpack, stack),
             Log2 => fun!(log2, unpack, stack),
             Recip => fun!(recip, unpack, stack),
-            Round => fun!(round, unpack, stack),
             Signum => fun!(signum, unpack, stack),
             Sin => fun!(sin, unpack, stack),
             Sinh => fun!(sinh, unpack, stack),
@@ -157,11 +162,10 @@ impl Eval for Fun {
             Tanh => fun!(tanh, unpack, stack),
             ToDegrees => fun!(to_degrees, unpack, stack),
             ToRadians => fun!(to_radians, unpack, stack),
-            Trunc => {
-                let v = fun!(trunc, unpack, stack) as i64;
-                stack.push(Value::Int(v));
-                return Ok(());
-            }
+            Ceil => to_int!(ceil),
+            Floor => to_int!(floor),
+            Round => to_int!(round),
+            Trunc => to_int!(trunc),
         };
         stack.push(Value::Float(e));
         Ok(())

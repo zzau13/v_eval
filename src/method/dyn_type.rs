@@ -10,7 +10,6 @@ pub(crate) enum Fun {
     Bool,
     Float,
     Int,
-    Option,
     Range,
     Str,
     Vec,
@@ -31,7 +30,6 @@ impl FromStr for Fun {
             "is_bool" => Ok(Bool),
             "is_float" => Ok(Float),
             "is_int" => Ok(Int),
-            "is_option" => Ok(Fun::Option),
             "is_range" => Ok(Range),
             "is_same" => Ok(Same),
             "is_str" => Ok(Str),
@@ -59,7 +57,6 @@ impl Eval for Fun {
             Bool => check!(Value::Bool(_)),
             Float => check!(Value::Float(_)),
             Int => check!(Value::Int(_)),
-            Fun::Option => check!(Value::Option(_)),
             Range => check!(Value::Range(_)),
             Same => {
                 let op2 = stack.pop().ok_or(())?;

@@ -9,8 +9,6 @@ use super::*;
 pub(crate) enum Fun {
     IsNone,
     IsSome,
-    UnWrap,
-    UnWrapOr = 1 << F,
     And = (1 << F) + 1,
     Or = (1 << F) + 2,
     Xor = (1 << F) + 3,
@@ -31,8 +29,6 @@ impl FromStr for Fun {
         match s {
             "is_some" => Ok(IsSome),
             "is_none" => Ok(IsNone),
-            "unwrap" => Ok(UnWrap),
-            "unwrap_or" => Ok(UnWrapOr),
             "and" => Ok(And),
             "or" => Ok(Or),
             "xor" => Ok(Xor),
@@ -44,7 +40,7 @@ impl FromStr for Fun {
 macro_rules! unpack {
     ($e:expr) => {
         match $e {
-            Value::Option(x) => *x,
+            Value::None => None,
             v => Some(v),
         }
     };
@@ -64,20 +60,12 @@ impl Eval for Fun {
             IsNone => bool!(is_none),
             IsSome => bool!(is_some),
             Or => fun_arg!(or, unpack, stack),
-            UnWrap => {
-                let op1 = unpack!(stack.pop().ok_or(())?);
-
-                return op1.ok_or(()).map(|e| stack.push(e));
-            }
-            UnWrapOr => {
-                let op2 = stack.pop().ok_or(())?;
-                let op1 = unpack!(stack.pop().ok_or(())?);
-                stack.push(op1.unwrap_or(op2));
-                return Ok(());
-            }
             Xor => fun_arg!(xor, unpack, stack),
         };
-        stack.push(Value::Option(Box::new(e)));
+        stack.push(match e {
+            Some(e) => e,
+            None => Value::None,
+        });
 
         Ok(())
     }

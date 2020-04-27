@@ -1,8 +1,8 @@
-use std::{collections::BTreeMap, convert::TryFrom, ops};
+use std::{collections::BTreeMap, convert::TryFrom, ops, option::Option};
 
 use syn::{
-    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprCall, ExprField, ExprIndex,
-    ExprMethodCall, ExprParen, ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
+    visit::Visit, BinOp, Expr, ExprArray, ExprBinary, ExprField, ExprIndex, ExprMethodCall,
+    ExprParen, ExprPath, ExprRange, ExprReference, ExprUnary, Lit,
 };
 
 use crate::{
@@ -131,7 +131,6 @@ impl<'a> Visit<'a> for Reflect<'a> {
             Index(i) => self.visit_expr_index(i),
             Reference(i) => self.visit_expr_reference(i),
             MethodCall(i) => self.visit_expr_method_call(i),
-            Call(i) => self.visit_expr_call(i),
             Field(i) => self.visit_expr_field(i),
             _ => self.on_err = true,
         }
@@ -162,23 +161,8 @@ impl<'a> Visit<'a> for Reflect<'a> {
         self.visit_expr(right);
     }
 
-    fn visit_expr_call(&mut self, ExprCall { func, args, .. }: &'a ExprCall) {
-        let func = &quote::quote!(#func).to_string();
-        if func == "Some" {
-            if args.len() != 1 {
-                return self.on_err = true;
-            }
-            if let Some(v) = Reflect::new(self.ctx).eval(&args[0]) {
-                self.output
-                    .push(Output::V(Value::Option(Box::new(Some(v)))));
-                return;
-            }
-        }
-        self.on_err = true;
-    }
-
     fn visit_expr_field(&mut self, _: &'a ExprField) {
-        self.output.push(Output::V(Value::Option(Box::new(None))));
+        self.output.push(Output::V(Value::None));
     }
 
     fn visit_expr_index(&mut self, ExprIndex { expr, index, .. }: &'a ExprIndex) {
@@ -288,7 +272,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
         };
 
         if path.as_str() == "None" {
-            self.output.push(Output::V(Value::Option(Box::new(None))));
+            self.output.push(Output::V(Value::None));
             return;
         }
 
@@ -297,7 +281,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             self.visit_expr(src);
             self.push_op(Operator::ParenRight);
         } else {
-            self.output.push(Output::V(Value::Option(Box::new(None))));
+            self.output.push(Output::V(Value::None));
         }
     }
 
@@ -575,7 +559,7 @@ mod test {
         let e = parse_str::<syn::Expr>(src).unwrap();
         let ctx = BTreeMap::new();
 
-        assert_eq!(eval(&ctx, &e), None);
+        assert_eq!(eval(&ctx, &e), Option::None);
 
         let src = "1 + 1";
         let e = parse_str::<syn::Expr>(src).unwrap();

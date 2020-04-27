@@ -10,7 +10,7 @@
 //! let e = Eval::default()
 //!     .insert("foo", "true")?
 //!     .insert("string", "\"foo\"")?
-//!     .insert("opt", "Some(true)")?
+//!     .insert("opt", "true")?
 //!     .insert("bar", "false")?;
 //!
 //! assert_eq!(e.eval("foo != bar").unwrap(), Value::Bool(true));
@@ -21,7 +21,7 @@
 //!
 //! assert_eq!(e.eval("1.5.trunc()").unwrap(), Value::Int(1));
 //! assert_eq!(e.eval("50.log10().trunc() == 1").unwrap(), Value::Bool(true));
-//! assert_eq!(e.eval("Some(1.log10()).unwrap()").unwrap(), Value::Float(1.0f64.log10()));
+//! assert_eq!(e.eval("1.log10()").unwrap(), Value::Float(1.0f64.log10()));
 //!# Ok(())
 //!# }
 //! ```
@@ -35,7 +35,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.and(bar)").unwrap(), Value::Bool(false));
@@ -51,7 +51,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.is_none()").unwrap(), Value::Bool(false));
@@ -66,7 +66,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.is_some()").unwrap(), Value::Bool(true));
@@ -81,44 +81,12 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.or(bar)").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("None.or(bar)").unwrap(), Value::Bool(false));
 //! assert_eq!(e.eval("None.or(not_exist)"), None);
-//!# Ok(())
-//!# }
-//! ```
-//! - `unwrap_or`
-//! ```rust
-//!# use v_eval::{Value, Eval};
-//!# fn main() -> Result<(), ()> {
-//!# let e = Eval::default()
-//!#     .insert("foo", "true")?
-//!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
-//!#     .insert("bar", "false")?;
-//!#
-//! assert_eq!(e.eval("not_exist.unwrap_or(bar)").unwrap(), Value::Bool(false));
-//! assert_eq!(e.eval("foo.unwrap_or(bar)").unwrap(), Value::Bool(true));
-//! assert_eq!(e.eval("None.unwrap_or(opt)").unwrap(), Value::Bool(true));
-//!# Ok(())
-//!# }
-//! ```
-//! - `unwrap`
-//! ```rust
-//!# use v_eval::{Value, Eval};
-//!# fn main() -> Result<(), ()> {
-//!# let e = Eval::default()
-//!#     .insert("foo", "true")?
-//!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
-//!#     .insert("bar", "false")?;
-//!#
-//! assert_eq!(e.eval("foo.unwrap()").unwrap(), Value::Bool(true));
-//! assert_eq!(e.eval("not_exist.unwrap()"), None);
-//! assert_eq!(e.eval("None.unwrap()"), None);
 //!# Ok(())
 //!# }
 //! ```
@@ -129,7 +97,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("not_exist.xor(opt)").unwrap(), Value::Bool(true));
@@ -148,7 +116,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.is_bool()").unwrap(), Value::Bool(true));
@@ -163,7 +131,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("1.0.is_float()").unwrap(), Value::Bool(true));
@@ -178,28 +146,11 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("1.is_int()").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("foo.is_int()").unwrap(), Value::Bool(false));
-//!# Ok(())
-//!# }
-//! ```
-//! - `is_option`
-//! ```rust
-//!# use v_eval::{Value, Eval};
-//!# fn main() -> Result<(), ()> {
-//!# let e = Eval::default()
-//!#     .insert("foo", "true")?
-//!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
-//!#     .insert("bar", "false")?;
-//!#
-//! assert_eq!(e.eval("None.is_option()").unwrap(), Value::Bool(true));
-//! assert_eq!(e.eval("not_exist.is_option()").unwrap(), Value::Bool(true));
-//! assert_eq!(e.eval("bar.is_option()").unwrap(), Value::Bool(false));
-//! assert_eq!(e.eval("opt.is_option()").unwrap(), Value::Bool(true));
 //!# Ok(())
 //!# }
 //! ```
@@ -210,7 +161,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("(0..10).is_range()").unwrap(), Value::Bool(true));
@@ -225,7 +176,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.is_str()").unwrap(), Value::Bool(false));
@@ -240,7 +191,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("[1, 3, 4.0, true, foo].is_vec()").unwrap(), Value::Bool(true));
@@ -255,7 +206,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("foo.is_same(bar)").unwrap(), Value::Bool(true));
@@ -311,7 +262,7 @@
 //!# let e = Eval::default()
 //!#     .insert("foo", "true")?
 //!#     .insert("string", "\"foo\"")?
-//!#     .insert("opt", "Some(true)")?
+//!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
 //! assert_eq!(e.eval("1.5.trunc()").unwrap(), Value::Int(1));
@@ -321,7 +272,6 @@
 //!
 //!
 
-extern crate quote_impersonated as quote;
 extern crate syn_impersonated as syn;
 
 use std::collections::BTreeMap;
@@ -485,12 +435,9 @@ mod test {
     #[test]
     fn test_opt() {
         let e = Eval::default();
+        assert_eq!(e.eval("1.log10()").unwrap(), Value::Float(1.0f64.log10()));
         assert_eq!(
-            e.eval("Some(1.log10()).unwrap()").unwrap(),
-            Value::Float(1.0f64.log10())
-        );
-        assert_eq!(
-            e.eval("None.unwrap_or(1.log10())"),
+            e.eval("None.or(1.log10())"),
             Some(Value::Float(1.0f64.log10()))
         );
     }

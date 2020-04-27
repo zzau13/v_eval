@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Formatter},
     ops::{Add, Div, Mul, Range, Rem, Sub},
 };
 
@@ -17,21 +17,23 @@ pub enum Value {
     Str(String),
     Range(Range<i64>),
     Vec(Vec<Value>),
-    Option(Box<Option<Value>>),
+    None,
 }
 
 impl Value {
     /// Is same type
     pub fn is_same(&self, other: &Value) -> bool {
-        use self::Value::*;
+        use Value::*;
         match (self, other) {
             (Float(_), Float(_))
             | (Int(_), Int(_))
+            | (Float(_), Int(_))
+            | (Int(_), Float(_))
             | (Bool(_), Bool(_))
             | (Str(_), Str(_))
             | (Range(_), Range(_))
             | (Vec(_), Vec(_))
-            | (Option(_), Option(_)) => true,
+            | (None, None) => true,
             _ => false,
         }
     }
@@ -71,7 +73,7 @@ impl Value {
 
     pub fn unwrap(self) -> Result<Self, ()> {
         match self {
-            Value::Option(a) => a.ok_or(()).and_then(|a| a.unwrap()),
+            Value::None => Err(()),
             Value::Vec(a) => {
                 let mut r = Vec::with_capacity(a.len());
                 for v in a {
@@ -101,14 +103,7 @@ impl Display for Value {
                 }
                 f.write_str("]")
             }
-            Option(a) => match &**a {
-                Some(a) => {
-                    f.write_str("Some(")?;
-                    a.fmt(f)?;
-                    f.write_char(')')
-                }
-                None => f.write_str("None"),
-            },
+            None => f.write_str("None"),
         }
     }
 }
@@ -119,11 +114,13 @@ impl PartialEq for Value {
         match (self, other) {
             (Float(a), Float(b)) => a == b,
             (Int(a), Int(b)) => a == b,
+            (Float(a), Int(b)) => *a == (*b as f64),
+            (Int(a), Float(b)) => (*a as f64) == *b,
             (Bool(a), Bool(b)) => a == b,
             (Str(a), Str(b)) => a == b,
             (Vec(a), Vec(b)) => a == b,
             (Range(a), Range(b)) => a == b,
-            (Option(a), Option(b)) => a == b,
+            (None, None) => false,
             _ => false,
         }
     }
@@ -131,10 +128,11 @@ impl PartialEq for Value {
 
 impl PartialOrd for Value {
     fn partial_cmp(&self, other: &Value) -> Option<Ordering> {
-        use self::Value::*;
         match (self, other) {
-            (Float(a), Float(b)) => a.partial_cmp(b),
-            (Int(a), Int(b)) => a.partial_cmp(b),
+            (Value::Float(a), Value::Float(b)) => a.partial_cmp(b),
+            (Value::Int(a), Value::Int(b)) => a.partial_cmp(b),
+            (Value::Float(a), Value::Int(b)) => a.partial_cmp(&(*b as f64)),
+            (Value::Int(a), Value::Float(b)) => (*a as f64).partial_cmp(b),
             _ => None,
         }
     }
@@ -148,6 +146,8 @@ impl Add for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a + b),
             (Int(a), Int(b)) => Int(a + b),
+            (Float(a), Int(b)) => Float(a + (b as f64)),
+            (Int(a), Float(b)) => Float((a as f64) + b),
             (Str(a), Str(b)) => Str(a + &b),
             _ => panic!("Not valid operation"),
         }
@@ -162,6 +162,8 @@ impl Sub for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a - b),
             (Int(a), Int(b)) => Int(a - b),
+            (Float(a), Int(b)) => Float(a - (b as f64)),
+            (Int(a), Float(b)) => Float((a as f64) - b),
             _ => panic!("Not valid operation"),
         }
     }
@@ -175,6 +177,8 @@ impl Mul for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a * b),
             (Int(a), Int(b)) => Int(a * b),
+            (Float(a), Int(b)) => Float(a * (b as f64)),
+            (Int(a), Float(b)) => Float((a as f64) * b),
             (Int(a), Str(b)) | (Str(b), Int(a)) => {
                 if 0 < a {
                     Str(b.repeat(a as usize))
@@ -195,6 +199,8 @@ impl Div for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a / b),
             (Int(a), Int(b)) => Int(a / b),
+            (Float(a), Int(b)) => Float(a / (b as f64)),
+            (Int(a), Float(b)) => Float((a as f64) / b),
             _ => panic!("Not valid operation"),
         }
     }
@@ -208,6 +214,8 @@ impl Rem for Value {
         match (self, v) {
             (Float(a), Float(b)) => Float(a % b),
             (Int(a), Int(b)) => Int(a % b),
+            (Float(a), Int(b)) => Float(a % (b as f64)),
+            (Int(a), Float(b)) => Float((a as f64) % b),
             _ => panic!("Not valid operation"),
         }
     }
