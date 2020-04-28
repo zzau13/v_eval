@@ -216,7 +216,7 @@
 //!# }
 //! ```
 //!
-//! ### Slice (Str and Ved)
+//! ### Slice (Str and Vec)
 //! - `len`
 //! ```rust
 //!# use v_eval::{Value, Eval};
