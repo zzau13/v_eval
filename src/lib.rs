@@ -294,6 +294,22 @@
 //!# Ok(())
 //!# }
 //! ```
+//! ### Str
+//! - `is_match`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#""2020-04-28".is_match(r"^\d{4}-\d{2}-\d{2}$")"#).unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval(r#"string.is_match(r"^\d{4}-\d{2}-\d{2}$")"#).unwrap(), Value::Bool(false));
+//!# Ok(())
+//!# }
+//! ```
 //! ### Number (i64 and f64)
 //! > See [f64 Rust](https://doc.rust-lang.org/std/primitive.f64.html)
 //! - `abs`

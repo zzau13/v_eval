@@ -16,3 +16,4 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 syn-impersonated = { version="0.1", features = ["full", "visit"] }
+regex = "1.3"
