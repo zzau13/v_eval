@@ -139,7 +139,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
     fn visit_expr_array(&mut self, ExprArray { elems, .. }: &'a ExprArray) {
         let mut v = Vec::with_capacity(elems.len());
         for elem in elems {
-            if let Some(val) = eval(self.ctx, elem) {
+            if let Some(val) = Reflect::new(self.ctx).eval(elem) {
                 v.push(val)
             } else {
                 self.on_err = true;
@@ -265,9 +265,11 @@ impl<'a> Visit<'a> for Reflect<'a> {
         }
 
         if let Some(src) = self.ctx.get(&path) {
-            self.push_op(Operator::ParenLeft);
-            self.visit_expr(src);
-            self.push_op(Operator::ParenRight);
+            if let Some(v) = Reflect::new(self.ctx).eval(src) {
+                self.output.push(Output::V(v));
+            } else {
+                self.on_err = true;
+            }
         } else {
             self.output.push(Output::V(Value::None));
         }

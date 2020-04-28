@@ -247,7 +247,53 @@
 //!# Ok(())
 //!# }
 //! ```
-//!
+//! - `contains`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.contains(\"oo\")").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("[4, 1.0, true, \"foo\"].contains(1)").unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `starts_with`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.starts_with(\"fo\")").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("[1, 2, foo].starts_with([1])").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("[not_exist, bar, foo].starts_with([None, false])").unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `ends_with`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.ends_with(\"oo\")").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("[1, 2, foo].ends_with([true])").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("[not_exist, bar, foo].ends_with([false, true])").unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
 //! ### Number (i64 and f64)
 //! > See [f64 Rust](https://doc.rust-lang.org/std/primitive.f64.html)
 //! - `abs`
@@ -461,6 +507,12 @@ mod test {
         assert_eq!(e.eval("not_exist"), None);
         assert_eq!(e.eval(r#"&[ "foo", self.s]"#), None);
 
+        assert_eq!(e.eval("s.contains(\"oo\")").unwrap(), Value::Bool(true));
+        assert_eq!(e.eval("arr.starts_with([1])").unwrap(), Value::Bool(true));
+        assert_eq!(
+            e.eval("[None].starts_with([None])").unwrap(),
+            Value::Bool(true)
+        );
         Ok(())
     }
 

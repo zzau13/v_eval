@@ -57,6 +57,7 @@ impl FromStr for Method {
         Ok(parse!(F64, DynType, Option, Slice))
     }
 }
+
 impl Eval for Method {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         match self {
