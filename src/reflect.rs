@@ -223,22 +223,10 @@ impl<'a> Visit<'a> for Reflect<'a> {
             return self.on_err = true;
         }
 
-        let method: &str = &method.to_string();
-        macro_rules! parse {
-            ($p:path) => {
-                match method.parse().map($p) {
-                    Ok(m) => m,
-                    Err(_) => return self.on_err = true,
-                }
-            };
-            ($p:path, $($t:tt)+) => {
-                match method.parse().map($p) {
-                    Ok(m) => m,
-                    Err(_) => parse!($($t)+)
-                }
-            };
-        }
-        let method = parse!(Method::F64, Method::DynType, Method::Option);
+        let method: Method = match method.to_string().parse() {
+            Ok(m) => m,
+            Err(_) => return self.on_err = true,
+        };
 
         if method.has_arg() {
             if args.len() != 1 {

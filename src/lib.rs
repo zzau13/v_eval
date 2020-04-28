@@ -216,7 +216,39 @@
 //!# }
 //! ```
 //!
-//!### Number (i64 and f64)
+//! ### Slice (Str and Ved)
+//! - `len`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.len()").unwrap(), Value::Int(3));
+//! assert_eq!(e.eval("[1, 2, 3, 4].len()").unwrap(), Value::Int(4));
+//!# Ok(())
+//!# }
+//! ```
+//! - `is_empty`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.is_empty()").unwrap(), Value::Bool(false));
+//! assert_eq!(e.eval("[].is_empty()").unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//!
+//! ### Number (i64 and f64)
 //! > See [f64 Rust](https://doc.rust-lang.org/std/primitive.f64.html)
 //! - `abs`
 //! - `acos`
