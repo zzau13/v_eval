@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{convert::TryInto, str::FromStr};
 
 use crate::{reflect::Eval, Value};
 
@@ -9,6 +9,8 @@ use regex::Regex;
 #[repr(u8)]
 pub(crate) enum Fun {
     IsMatch = 1 << F,
+    Find = (1 << F) + 1,
+    RFind = (1 << F) + 2,
 }
 
 /// Has arguments flags
@@ -23,31 +25,34 @@ impl FromStr for Fun {
         use Fun::*;
         match s {
             "is_match" => Ok(IsMatch),
+            "find" => Ok(Find),
+            "rfind" => Ok(RFind),
             _ => Err(()),
         }
     }
 }
 
-macro_rules! unpack {
-    ($e:expr) => {
-        match $e {
-            Value::Str(x) => x,
-            _ => return Err(()),
-        }
-    };
-}
-
 impl Eval for Fun {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
-        use Fun::*;
-        match self {
-            IsMatch => {
-                let op2 = unpack!(stack.pop().ok_or(())?);
-                let op1 = unpack!(stack.pop().ok_or(())?);
-                let re = Regex::new(&op2).map_err(|_| ())?;
-                stack.push(Value::Bool(re.is_match(&op1)))
-            }
+        macro_rules! some_arg {
+            ($fun:ident) => {{
+                let op2: String = pop!(stack);
+                let op1: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
+                op1.$fun(&op2).map_or(Value::None, Into::into)
+            }};
         }
+        use Fun::*;
+        let e = match self {
+            IsMatch => {
+                let op2: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
+                let op1: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
+                let re = Regex::new(&op2).map_err(|_| ())?;
+                re.is_match(&op1).into()
+            }
+            Find => some_arg!(find),
+            RFind => some_arg!(rfind),
+        };
+        stack.push(e);
 
         Ok(())
     }

@@ -35,24 +35,6 @@ impl FromStr for Fun {
     }
 }
 
-macro_rules! unpack_str {
-    ($e:expr) => {
-        match $e {
-            Value::Str(x) => x,
-            _ => return Err(()),
-        }
-    };
-}
-
-macro_rules! unpack_vec {
-    ($e:expr) => {
-        match $e {
-            Value::Vec(x) => x,
-            _ => return Err(()),
-        }
-    };
-}
-
 macro_rules! unpack_value {
     ($e:expr) => {
         match $e {
@@ -69,11 +51,8 @@ impl Eval for Fun {
                 let op2 = stack.pop().ok_or(())?;
                 let op1 = stack.pop().ok_or(())?;
                 stack.push(Value::Bool(match op1 {
-                    Value::Vec(x) => {
-                        let e = unpack_vec!(op2);
-                        x.$fun(&e)
-                    }
-                    Value::Str(x) => x.$fun(&unpack_str!(op2)),
+                    Value::Vec(x) => x.$fun(&TryInto::<Vec<Value>>::try_into(op2)?),
+                    Value::Str(x) => x.$fun(&TryInto::<String>::try_into(op2)?),
                     _ => return Err(()),
                 }))
             }};
@@ -102,7 +81,7 @@ impl Eval for Fun {
                 let op1 = stack.pop().ok_or(())?;
                 stack.push(Value::Bool(match op1 {
                     Value::Vec(x) => x.contains(&unpack_value!(op2)),
-                    Value::Str(x) => x.contains(&unpack_str!(op2)),
+                    Value::Str(x) => x.contains(&TryInto::<String>::try_into(op2)?),
                     _ => return Err(()),
                 }))
             }

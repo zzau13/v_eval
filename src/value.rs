@@ -1,5 +1,6 @@
 use std::{
     cmp::Ordering,
+    convert::TryInto,
     fmt::{self, Display, Formatter},
     ops::{Add, Div, Mul, Range, Rem, Sub},
 };
@@ -84,6 +85,102 @@ impl Value {
             Value::None => false,
             Value::Vec(a) => a.iter().all(|v| v.is_some()),
             _ => true,
+        }
+    }
+}
+
+macro_rules! from_int {
+    ($($t:ty)*) => {
+        $(
+            impl From<$t> for Value {
+                #[inline]
+                fn from(t: $t) -> Self {
+                    Value::Int(t as i64)
+                }
+            }
+        )*
+    };
+}
+
+from_int!(u8 u16 u32 u64 i8 i16 i32 i64 usize isize);
+
+macro_rules! from_float {
+    ($($t:ty)*) => {
+        $(
+            impl From<$t> for Value {
+                #[inline]
+                fn from(t: $t) -> Self {
+                    Value::Float(t as f64)
+                }
+            }
+        )*
+    };
+}
+
+from_float!(f32 f64);
+
+impl From<bool> for Value {
+    #[inline]
+    fn from(t: bool) -> Self {
+        Value::Bool(t)
+    }
+}
+
+impl From<String> for Value {
+    #[inline]
+    fn from(t: String) -> Self {
+        Value::Str(t)
+    }
+}
+
+impl<V: Into<Value>> From<Vec<V>> for Value {
+    fn from(t: Vec<V>) -> Self {
+        Value::Vec(t.into_iter().map(Into::into).collect())
+    }
+}
+
+impl<V: Into<Value>> From<Option<V>> for Value {
+    fn from(t: Option<V>) -> Self {
+        t.map(Into::into).unwrap_or(Value::None)
+    }
+}
+
+macro_rules! try_into {
+    ($t:ty, $i:ident) => {
+        impl TryInto<$t> for Value {
+            type Error = ();
+
+            fn try_into(self) -> Result<$t, Self::Error> {
+                match self {
+                    Value::$i(x) => Ok(x),
+                    _ => Err(()),
+                }
+            }
+        }
+    };
+    ($t:ty, $i:ident, $($tt:tt)+) => {
+        try_into!($t, $i);
+        try_into!($($tt)+);
+    };
+}
+
+#[rustfmt::skip]
+try_into!(
+    i64, Int,
+    String, Str,
+    Range<i64>, Range,
+    bool, Bool,
+    Vec<Value>, Vec
+);
+
+impl TryInto<f64> for Value {
+    type Error = ();
+
+    fn try_into(self) -> Result<f64, Self::Error> {
+        match self {
+            Value::Float(x) => Ok(x),
+            Value::Int(x) => Ok(x as f64),
+            _ => Err(()),
         }
     }
 }

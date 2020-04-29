@@ -103,71 +103,61 @@ impl FromStr for Fun {
     }
 }
 
-macro_rules! unpack {
-    ($e:expr) => {
-        match $e {
-            Value::Float(x) => x,
-            Value::Int(x) => x as f64,
-            _ => return Err(()),
-        }
-    };
-}
-
 impl Eval for Fun {
     #[allow(clippy::cognitive_complexity)]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! to_int {
             ($fun:ident) => {{
-                let v = fun!($fun, unpack, stack) as i64;
-                stack.push(Value::Int(v));
-                return Ok(());
+                let v: f64 = fun!($fun, f64, stack);
+
+                (v as i64).into()
             }};
         }
         let e = match self {
-            Atan2 => fun_arg!(atan2, unpack, stack),
-            Hypot => fun_arg!(hypot, unpack, stack),
-            Log => fun_arg!(log, unpack, stack),
-            Max => fun_arg!(max, unpack, stack),
-            Min => fun_arg!(min, unpack, stack),
-            PowF => fun_arg!(powf, unpack, stack),
+            Atan2 => fun_arg_s!(atan2, f64, stack),
+            Hypot => fun_arg_s!(hypot, f64, stack),
+            Log => fun_arg_s!(log, f64, stack),
+            Max => fun_arg_s!(max, f64, stack),
+            Min => fun_arg_s!(min, f64, stack),
+            PowF => fun_arg_s!(powf, f64, stack),
             PowI => {
-                let op2 = unpack!(stack.pop().ok_or(())?);
-                let op1 = unpack!(stack.pop().ok_or(())?);
-                op1.powi(op2 as i32)
+                let op2: f64 = pop!(stack);
+                let op1: f64 = pop!(stack);
+                op1.powi(op2 as i32).into()
             }
-            Abs => fun!(abs, unpack, stack),
-            Acos => fun!(acos, unpack, stack),
-            Acosh => fun!(acosh, unpack, stack),
-            Asin => fun!(asin, unpack, stack),
-            Asinh => fun!(asinh, unpack, stack),
-            Atan => fun!(atan, unpack, stack),
-            Atanh => fun!(atanh, unpack, stack),
-            Cbrt => fun!(cbrt, unpack, stack),
-            Cos => fun!(cos, unpack, stack),
-            Cosh => fun!(cosh, unpack, stack),
-            Exp => fun!(exp, unpack, stack),
-            Exp2 => fun!(exp2, unpack, stack),
-            ExpM1 => fun!(exp_m1, unpack, stack),
-            Fract => fun!(fract, unpack, stack),
-            Ln => fun!(ln, unpack, stack),
-            Ln1p => fun!(ln_1p, unpack, stack),
-            Log10 => fun!(log10, unpack, stack),
-            Log2 => fun!(log2, unpack, stack),
-            Recip => fun!(recip, unpack, stack),
-            Signum => fun!(signum, unpack, stack),
-            Sin => fun!(sin, unpack, stack),
-            Sinh => fun!(sinh, unpack, stack),
-            Sqrt => fun!(sqrt, unpack, stack),
-            Tan => fun!(tan, unpack, stack),
-            Tanh => fun!(tanh, unpack, stack),
-            ToDegrees => fun!(to_degrees, unpack, stack),
-            ToRadians => fun!(to_radians, unpack, stack),
+            Abs => fun!(abs, f64, stack),
+            Acos => fun!(acos, f64, stack),
+            Acosh => fun!(acosh, f64, stack),
+            Asin => fun!(asin, f64, stack),
+            Asinh => fun!(asinh, f64, stack),
+            Atan => fun!(atan, f64, stack),
+            Atanh => fun!(atanh, f64, stack),
+            Cbrt => fun!(cbrt, f64, stack),
+            Cos => fun!(cos, f64, stack),
+            Cosh => fun!(cosh, f64, stack),
+            Exp => fun!(exp, f64, stack),
+            Exp2 => fun!(exp2, f64, stack),
+            ExpM1 => fun!(exp_m1, f64, stack),
+            Fract => fun!(fract, f64, stack),
+            Ln => fun!(ln, f64, stack),
+            Ln1p => fun!(ln_1p, f64, stack),
+            Log10 => fun!(log10, f64, stack),
+            Log2 => fun!(log2, f64, stack),
+            Recip => fun!(recip, f64, stack),
+            Signum => fun!(signum, f64, stack),
+            Sin => fun!(sin, f64, stack),
+            Sinh => fun!(sinh, f64, stack),
+            Sqrt => fun!(sqrt, f64, stack),
+            Tan => fun!(tan, f64, stack),
+            Tanh => fun!(tanh, f64, stack),
+            ToDegrees => fun!(to_degrees, f64, stack),
+            ToRadians => fun!(to_radians, f64, stack),
             Ceil => to_int!(ceil),
             Floor => to_int!(floor),
             Round => to_int!(round),
             Trunc => to_int!(trunc),
         };
-        stack.push(Value::Float(e));
+        stack.push(e);
         Ok(())
     }
 }

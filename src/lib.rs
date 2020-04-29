@@ -310,6 +310,34 @@
 //!# Ok(())
 //!# }
 //! ```
+//! - `find`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.find("o")"#).unwrap(), Value::Int(1));
+//!# Ok(())
+//!# }
+//! ```
+//! - `rfind`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.rfind("o")"#).unwrap(), Value::Int(2));
+//!# Ok(())
+//!# }
+//! ```
 //! ### Number (i64 and f64)
 //! > See [f64 Rust](https://doc.rust-lang.org/std/primitive.f64.html)
 //! - `abs`

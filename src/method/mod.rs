@@ -1,19 +1,46 @@
-use std::str::FromStr;
+use std::{convert::TryInto, str::FromStr};
 
 use crate::{reflect::Eval, Value};
 
+macro_rules! pop {
+    ($stack:ident) => {
+        $stack.pop().ok_or(()).and_then(TryInto::try_into)?
+    };
+}
+
 macro_rules! fun_arg {
-    ($m:ident, $cb: ident, $stack:ident) => {{
-        let op2 = $cb!($stack.pop().ok_or(())?);
-        let op1 = $cb!($stack.pop().ok_or(())?);
-        op1.$m(op2)
+    ($m:ident, $t1:ty, $t2:ty, $stack:ident) => {{
+        let op2: $t1 = pop!($stack);
+        let op1: $t2 = pop!($stack);
+        op1.$m(op2).into()
     }};
 }
 
+macro_rules! fun_arg_s {
+    ($m:ident, $t:ty, $stack:ident) => {
+        fun_arg!($m, $t, $t, $stack)
+    };
+}
+
 macro_rules! fun {
+    ($m:ident, $t:ty, $stack:ident) => {{
+        let op1: $t = pop!($stack);
+        op1.$m().into()
+    }};
+}
+
+macro_rules! fun_un {
     ($m:ident, $cb: ident, $stack:ident) => {{
         let op1 = $cb!($stack.pop().ok_or(())?);
-        op1.$m()
+        op1.$m().into()
+    }};
+}
+
+macro_rules! fun_arg_un {
+    ($m:ident, $cb: ident, $stack:ident) => {{
+        let op2 = $cb!($stack.pop().ok_or(())?);
+        let op1 = $cb!($stack.pop().ok_or(())?);
+        op1.$m(op2).into()
     }};
 }
 

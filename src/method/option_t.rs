@@ -37,6 +37,7 @@ impl FromStr for Fun {
     }
 }
 
+// Into<Option> for Value is implemented
 macro_rules! unpack {
     ($e:expr) => {
         match $e {
@@ -50,22 +51,18 @@ impl Eval for Fun {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! bool {
             ($fun:ident) => {{
-                let e = fun!($fun, unpack, stack);
-                stack.push(Value::Bool(e));
-                return Ok(());
+                let e: bool = fun_un!($fun, unpack, stack);
+                e.into()
             }};
         }
         let e = match self {
-            And => fun_arg!(and, unpack, stack),
+            And => fun_arg_un!(and, unpack, stack),
             IsNone => bool!(is_none),
             IsSome => bool!(is_some),
-            Or => fun_arg!(or, unpack, stack),
-            Xor => fun_arg!(xor, unpack, stack),
+            Or => fun_arg_un!(or, unpack, stack),
+            Xor => fun_arg_un!(xor, unpack, stack),
         };
-        stack.push(match e {
-            Some(e) => e,
-            None => Value::None,
-        });
+        stack.push(e);
 
         Ok(())
     }
