@@ -1,5 +1,7 @@
 use std::{cmp::Ordering, convert::TryFrom};
 
+use syn::BinOp;
+
 use crate::{reflect::Eval, Value};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -29,6 +31,8 @@ pub(super) enum Operator {
     Or = (1 << 6) + 1,
 }
 
+use Operator::*;
+
 impl Operator {
     #[inline]
     fn preference(self, o: Operator) -> Ordering {
@@ -54,21 +58,20 @@ impl TryFrom<syn::BinOp> for Operator {
     type Error = ();
 
     fn try_from(value: syn::BinOp) -> Result<Self, Self::Error> {
-        use syn::BinOp::*;
         match value {
-            Add(_) => Ok(Operator::Add),
-            Sub(_) => Ok(Operator::Sub),
-            Mul(_) => Ok(Operator::Mul),
-            Div(_) => Ok(Operator::Div),
-            Rem(_) => Ok(Operator::Rem),
-            And(_) => Ok(Operator::And),
-            Or(_) => Ok(Operator::Or),
-            Eq(_) => Ok(Operator::Eq),
-            Ne(_) => Ok(Operator::Ne),
-            Lt(_) => Ok(Operator::Lt),
-            Le(_) => Ok(Operator::Le),
-            Gt(_) => Ok(Operator::Gt),
-            Ge(_) => Ok(Operator::Ge),
+            BinOp::Add(_) => Ok(Add),
+            BinOp::Sub(_) => Ok(Sub),
+            BinOp::Mul(_) => Ok(Mul),
+            BinOp::Div(_) => Ok(Div),
+            BinOp::Rem(_) => Ok(Rem),
+            BinOp::And(_) => Ok(And),
+            BinOp::Or(_) => Ok(Or),
+            BinOp::Eq(_) => Ok(Eq),
+            BinOp::Ne(_) => Ok(Ne),
+            BinOp::Lt(_) => Ok(Lt),
+            BinOp::Le(_) => Ok(Le),
+            BinOp::Gt(_) => Ok(Gt),
+            BinOp::Ge(_) => Ok(Ge),
             _ => Err(()),
         }
     }
@@ -80,26 +83,25 @@ impl Eval for Operator {
         let op1 = stack.pop().ok_or(())?;
 
         macro_rules! _i {
-                    ($a:ident for $e:path) => {
-                        $a == $e
-                    };
-                    ($a:ident for $e:path | $($t:tt)+) => {
-                        $a == $e || _i!($a for $($t)+)
-                    };
-                }
+            ($a:ident for $e:path) => {
+                $a == $e
+            };
+            ($a:ident for $e:path | $($t:tt)+) => {
+                $a == $e || _i!($a for $($t)+)
+            };
+        }
 
         macro_rules! order {
-                    ($($t:tt)+) => {
-                        if let Some(a) = op1.partial_cmp(&op2) {
-                            Value::Bool(_i!(a for $($t)+))
-                        } else {
-                            return Err(());
-                        }
-                    };
+            ($($t:tt)+) => {
+                if let Some(a) = op1.partial_cmp(&op2) {
+                    Value::Bool(_i!(a for $($t)+))
+                } else {
+                    return Err(());
                 }
+            };
+        }
 
         if check_op(self, &op1, &op2) {
-            use Operator::*;
             stack.push(match self {
                 Add => op1 + op2,
                 Sub => op1 - op2,
@@ -127,7 +129,6 @@ impl Eval for Operator {
 
 #[inline]
 fn check_op(op: Operator, op1: &Value, op2: &Value) -> bool {
-    use Operator::*;
     match op1 {
         Value::Int(_) => match op {
             Mul => match op2 {
