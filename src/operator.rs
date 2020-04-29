@@ -94,7 +94,7 @@ impl Eval for Operator {
         macro_rules! order {
             ($($t:tt)+) => {
                 if let Some(a) = op1.partial_cmp(&op2) {
-                    Value::Bool(_i!(a for $($t)+))
+                    _i!(a for $($t)+).into()
                 } else {
                     return Err(());
                 }
@@ -108,8 +108,8 @@ impl Eval for Operator {
                 Mul => op1 * op2,
                 Div => op1 / op2,
                 Rem => op1 % op2,
-                Eq => Value::Bool(op1 == op2),
-                Ne => Value::Bool(op1 != op2),
+                Eq => (op1 == op2).into(),
+                Ne => (op1 != op2).into(),
                 Gt => order!(Ordering::Greater),
                 Ge => order!(Ordering::Greater | Ordering::Equal),
                 Lt => order!(Ordering::Less),

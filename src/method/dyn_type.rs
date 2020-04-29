@@ -45,9 +45,9 @@ impl Eval for Fun {
             ($pat:pat) => {{
                 let op1 = stack.pop().ok_or(())?;
                 if let $pat = op1 {
-                    stack.push(Value::Bool(true));
+                    stack.push(true.into());
                 } else {
-                    stack.push(Value::Bool(false));
+                    stack.push(false.into());
                 }
             }};
         }
@@ -61,7 +61,7 @@ impl Eval for Fun {
             Same => {
                 let op2 = stack.pop().ok_or(())?;
                 let op1 = stack.pop().ok_or(())?;
-                stack.push(Value::Bool(op1.is_same(&op2)))
+                stack.push(op1.is_same(&op2).into())
             }
             Str => check!(Value::Str(_)),
             Vec => check!(Value::Vec(_)),

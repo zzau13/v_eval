@@ -133,6 +133,13 @@ impl From<String> for Value {
     }
 }
 
+impl From<Range<i64>> for Value {
+    #[inline]
+    fn from(t: Range<i64>) -> Self {
+        Value::Range(t)
+    }
+}
+
 impl<V: Into<Value>> From<Vec<V>> for Value {
     fn from(t: Vec<V>) -> Self {
         Value::Vec(t.into_iter().map(Into::into).collect())

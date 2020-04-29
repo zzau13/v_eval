@@ -147,7 +147,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
             }
         }
 
-        self.output.push(Output::V(Value::Vec(v)));
+        self.output.push(Output::V(v.into()));
     }
 
     fn visit_expr_binary(
@@ -300,7 +300,7 @@ impl<'a> Visit<'a> for Reflect<'a> {
                     .map(|to| from..to)
             })
         {
-            self.output.push(Output::V(Value::Range(range)));
+            self.output.push(Output::V(range.into()));
         } else {
             self.on_err = true;
         }
@@ -316,11 +316,11 @@ impl<'a> Visit<'a> for Reflect<'a> {
         match op {
             Not(_) => {
                 self.push_op(Operator::Not);
-                self.output.push(Output::V(Value::Bool(false)));
+                self.output.push(Output::V(false.into()));
             }
             Neg(_) => {
                 self.push_op(Operator::Neg);
-                self.output.push(Output::V(Value::Int(0)));
+                self.output.push(Output::V(0.into()));
             }
             _ => self.on_err = true,
         }
@@ -329,19 +329,17 @@ impl<'a> Visit<'a> for Reflect<'a> {
     fn visit_lit(&mut self, l: &'a Lit) {
         use syn::Lit::*;
         match l {
-            Int(a) => match a.base10_parse() {
-                Ok(n) => self.output.push(Output::V(Value::Int(n))),
+            Int(a) => match a.base10_parse::<i64>() {
+                Ok(n) => self.output.push(Output::V(n.into())),
                 _ => self.on_err = true,
             },
-            Float(a) => match a.base10_parse() {
-                Ok(n) => self.output.push(Output::V(Value::Float(n))),
+            Float(a) => match a.base10_parse::<f64>() {
+                Ok(n) => self.output.push(Output::V(n.into())),
                 _ => self.on_err = true,
             },
-            Bool(a) => self.output.push(Output::V(Value::Bool(a.value))),
-            Str(a) => self.output.push(Output::V(Value::Str(a.value()))),
-            Char(a) => self
-                .output
-                .push(Output::V(Value::Str(a.value().to_string()))),
+            Bool(a) => self.output.push(Output::V(a.value.into())),
+            Str(a) => self.output.push(Output::V(a.value().into())),
+            Char(a) => self.output.push(Output::V(a.value().to_string().into())),
             _ => self.on_err = true,
         }
     }

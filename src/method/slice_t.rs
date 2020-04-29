@@ -46,47 +46,53 @@ macro_rules! unpack_value {
 
 impl Eval for Fun {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
-        macro_rules! bool_arg {
+        macro_rules! fun_arg {
             ($fun:ident) => {{
                 let op2 = stack.pop().ok_or(())?;
                 let op1 = stack.pop().ok_or(())?;
-                stack.push(Value::Bool(match op1 {
-                    Value::Vec(x) => x.$fun(&TryInto::<Vec<Value>>::try_into(op2)?),
-                    Value::Str(x) => x.$fun(&TryInto::<String>::try_into(op2)?),
-                    _ => return Err(()),
-                }))
+                stack.push(
+                    match op1 {
+                        Value::Vec(x) => x.$fun(&TryInto::<Vec<Value>>::try_into(op2)?),
+                        Value::Str(x) => x.$fun(&TryInto::<String>::try_into(op2)?),
+                        _ => return Err(()),
+                    }
+                    .into(),
+                )
+            }};
+        }
+
+        macro_rules! fun {
+            ($fun:ident) => {{
+                let op1 = stack.pop().ok_or(())?;
+                stack.push(
+                    match op1 {
+                        Value::Vec(x) => x.$fun(),
+                        Value::Str(x) => x.$fun(),
+                        _ => return Err(()),
+                    }
+                    .into(),
+                )
             }};
         }
 
         use Fun::*;
         match self {
-            Len => {
-                let op1 = stack.pop().ok_or(())?;
-                stack.push(Value::Int(match op1 {
-                    Value::Vec(x) => x.len(),
-                    Value::Str(x) => x.len(),
-                    _ => return Err(()),
-                } as i64))
-            }
-            IsEmpty => {
-                let op1 = stack.pop().ok_or(())?;
-                stack.push(Value::Bool(match op1 {
-                    Value::Vec(x) => x.is_empty(),
-                    Value::Str(x) => x.is_empty(),
-                    _ => return Err(()),
-                }))
-            }
+            Len => fun!(len),
+            IsEmpty => fun!(is_empty),
             Contains => {
                 let op2 = stack.pop().ok_or(())?;
                 let op1 = stack.pop().ok_or(())?;
-                stack.push(Value::Bool(match op1 {
-                    Value::Vec(x) => x.contains(&unpack_value!(op2)),
-                    Value::Str(x) => x.contains(&TryInto::<String>::try_into(op2)?),
-                    _ => return Err(()),
-                }))
+                stack.push(
+                    match op1 {
+                        Value::Vec(x) => x.contains(&unpack_value!(op2)),
+                        Value::Str(x) => x.contains(&TryInto::<String>::try_into(op2)?),
+                        _ => return Err(()),
+                    }
+                    .into(),
+                )
             }
-            StartsWith => bool_arg!(starts_with),
-            EndsWith => bool_arg!(ends_with),
+            StartsWith => fun_arg!(starts_with),
+            EndsWith => fun_arg!(ends_with),
         };
 
         Ok(())

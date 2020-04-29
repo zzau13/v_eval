@@ -34,23 +34,24 @@ impl FromStr for Fun {
 
 impl Eval for Fun {
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
-        macro_rules! some_arg {
+        macro_rules! fun_arg {
             ($fun:ident) => {{
                 let op2: String = pop!(stack);
-                let op1: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
-                op1.$fun(&op2).map_or(Value::None, Into::into)
+                let op1: String = pop!(stack);
+                op1.$fun(&op2).into()
             }};
         }
+
         use Fun::*;
         let e = match self {
             IsMatch => {
-                let op2: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
-                let op1: String = stack.pop().ok_or(()).and_then(TryInto::try_into)?;
+                let op2: String = pop!(stack);
+                let op1: String = pop!(stack);
                 let re = Regex::new(&op2).map_err(|_| ())?;
                 re.is_match(&op1).into()
             }
-            Find => some_arg!(find),
-            RFind => some_arg!(rfind),
+            Find => fun_arg!(find),
+            RFind => fun_arg!(rfind),
         };
         stack.push(e);
 
