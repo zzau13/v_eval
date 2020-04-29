@@ -14,6 +14,8 @@ pub(crate) enum Fun {
     EndsWith = (1 << F) + 2,
 }
 
+use Fun::*;
+
 /// Has arguments flags
 const F: u8 = 6;
 /// Has arguments number of leading zeros
@@ -23,7 +25,6 @@ impl FromStr for Fun {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Fun::*;
         match s {
             "len" => Ok(Len),
             "is_empty" => Ok(IsEmpty),
@@ -33,15 +34,6 @@ impl FromStr for Fun {
             _ => Err(()),
         }
     }
-}
-
-macro_rules! unpack_value {
-    ($e:expr) => {
-        match $e {
-            Value::Vec(_) => return Err(()),
-            a => a,
-        }
-    };
 }
 
 impl Eval for Fun {
@@ -75,7 +67,6 @@ impl Eval for Fun {
             }};
         }
 
-        use Fun::*;
         match self {
             Len => fun!(len),
             IsEmpty => fun!(is_empty),
@@ -84,8 +75,8 @@ impl Eval for Fun {
                 let op1 = stack.pop().ok_or(())?;
                 stack.push(
                     match op1 {
-                        Value::Vec(x) => x.contains(&unpack_value!(op2)),
-                        Value::Str(x) => x.contains(&TryInto::<String>::try_into(op2)?),
+                        Value::Vec(op1) => op1.contains(&op2),
+                        Value::Str(op1) => op1.contains(&TryInto::<String>::try_into(op2)?),
                         _ => return Err(()),
                     }
                     .into(),

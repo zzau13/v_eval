@@ -1,9 +1,10 @@
 use std::{convert::TryInto, str::FromStr};
 
+use regex::Regex;
+
 use crate::{reflect::Eval, Value};
 
 use super::*;
-use regex::Regex;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(u8)]
@@ -12,6 +13,8 @@ pub(crate) enum Fun {
     Find = (1 << F) + 1,
     RFind = (1 << F) + 2,
 }
+
+use Fun::*;
 
 /// Has arguments flags
 const F: u8 = 6;
@@ -22,7 +25,6 @@ impl FromStr for Fun {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Fun::*;
         match s {
             "is_match" => Ok(IsMatch),
             "find" => Ok(Find),
@@ -42,7 +44,6 @@ impl Eval for Fun {
             }};
         }
 
-        use Fun::*;
         let e = match self {
             IsMatch => {
                 let op2: String = pop!(stack);
