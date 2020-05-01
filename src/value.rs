@@ -119,6 +119,12 @@ macro_rules! from_float {
 
 from_float!(f32 f64);
 
+impl From<&Value> for Value {
+    fn from(i: &Value) -> Self {
+        i.clone()
+    }
+}
+
 impl From<bool> for Value {
     #[inline]
     fn from(t: bool) -> Self {
@@ -194,6 +200,17 @@ impl TryInto<f64> for Value {
         match self {
             Value::Float(x) => Ok(x),
             Value::Int(x) => Ok(x as f64),
+            _ => Err(()),
+        }
+    }
+}
+
+impl TryInto<usize> for Value {
+    type Error = ();
+
+    fn try_into(self) -> Result<usize, Self::Error> {
+        match self {
+            Value::Int(x) => x.try_into().map_err(|_| ()),
             _ => Err(()),
         }
     }

@@ -49,6 +49,7 @@ pub mod f64_t;
 pub mod option_t;
 pub mod slice_t;
 pub mod str_t;
+pub mod vec_t;
 
 pub(crate) trait HasArg: Copy {
     fn has_arg(self) -> bool;
@@ -61,6 +62,7 @@ pub(crate) enum Method {
     Option(option_t::Fun),
     Slice(slice_t::Fun),
     Str(str_t::Fun),
+    VecT(vec_t::Fun),
 }
 
 use Method::*;
@@ -83,7 +85,7 @@ impl FromStr for Method {
                 }
             };
         }
-        Ok(parse!(DynType, Option, Slice, Str, F64))
+        Ok(parse!(DynType, Option, VecT, Slice, Str, F64))
     }
 }
 
@@ -95,6 +97,7 @@ impl Eval for Method {
             Option(f) => f.eval(stack),
             Slice(f) => f.eval(stack),
             Str(f) => f.eval(stack),
+            VecT(f) => f.eval(stack),
         }
     }
 }
@@ -107,6 +110,7 @@ impl HasArg for Method {
             Option(f) => f.has_arg(),
             Slice(f) => f.has_arg(),
             Str(f) => f.has_arg(),
+            VecT(f) => f.has_arg(),
         }
     }
 }

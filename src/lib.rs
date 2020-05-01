@@ -467,6 +467,50 @@
 //!# Ok(())
 //!# }
 //! ```
+//! ### Vec
+//! - `first`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"[1, 2, 3].first()"#).unwrap(), Value::Int(1));
+//!# Ok(())
+//!# }
+//! ```
+//! - `get`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"[1, 2].get(1)"#).unwrap(), Value::Int(2));
+//! assert_eq!(e.eval(r#"[1, 2].get(2)"#), None);
+//!# Ok(())
+//!# }
+//! ```
+//! - `last`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"[1, 2].last()"#).unwrap(), Value::Int(2));
+//!# Ok(())
+//!# }
+//! ```
 //! ### Number (i64 and f64)
 //! > See [f64 Rust](https://doc.rust-lang.org/std/primitive.f64.html)
 //! - `abs`
