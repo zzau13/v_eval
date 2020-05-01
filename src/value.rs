@@ -148,7 +148,7 @@ impl<V: Into<Value>> From<Vec<V>> for Value {
 
 impl<V: Into<Value>> From<Option<V>> for Value {
     fn from(t: Option<V>) -> Self {
-        t.map(Into::into).unwrap_or(Value::None)
+        t.map_or(Value::None, Into::into)
     }
 }
 
