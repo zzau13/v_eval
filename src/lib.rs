@@ -381,6 +381,48 @@
 //!# Ok(())
 //!# }
 //! ```
+//! - `trim`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"" foo ".trim() == string"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `trim_end`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#""foo ".trim_end() == string"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `trim_start`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"" foo".trim_start() == string"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
 //! - `rfind`
 //! ```rust
 //!# use v_eval::{Value, Eval};

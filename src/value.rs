@@ -133,6 +133,13 @@ impl From<String> for Value {
     }
 }
 
+impl From<&str> for Value {
+    #[inline]
+    fn from(t: &str) -> Self {
+        Value::Str(t.to_string())
+    }
+}
+
 impl From<Range<i64>> for Value {
     #[inline]
     fn from(t: Range<i64>) -> Self {

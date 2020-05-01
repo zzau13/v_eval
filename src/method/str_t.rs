@@ -12,6 +12,9 @@ pub(crate) enum Fun {
     IsAscii,
     ToLowercase,
     ToUppercase,
+    Trim,
+    TrimEnd,
+    TrimStart,
     EqIgnoreAsciiCase = 1 << F,
     Find = (1 << F) + 1,
     IsMatch = (1 << F) + 2,
@@ -36,6 +39,9 @@ impl FromStr for Fun {
             "is_match" => Ok(IsMatch),
             "to_lowercase" => Ok(ToLowercase),
             "to_uppercase" => Ok(ToUppercase),
+            "trim" => Ok(Trim),
+            "trim_end" => Ok(TrimEnd),
+            "trim_start" => Ok(TrimStart),
             "rfind" => Ok(RFind),
             _ => Err(()),
         }
@@ -64,6 +70,9 @@ impl Eval for Fun {
             }
             ToLowercase => fun!(to_lowercase, String, stack),
             ToUppercase => fun!(to_uppercase, String, stack),
+            Trim => fun!(trim, String, stack),
+            TrimEnd => fun!(trim_end, String, stack),
+            TrimStart => fun!(trim_start, String, stack),
             RFind => fun_ref!(rfind),
         };
         stack.push(e);
