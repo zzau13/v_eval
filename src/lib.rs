@@ -244,6 +244,7 @@
 //!#
 //! assert_eq!(e.eval("string.is_empty()").unwrap(), Value::Bool(false));
 //! assert_eq!(e.eval("[].is_empty()").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("(0..0).is_empty()").unwrap(), Value::Bool(true));
 //!# Ok(())
 //!# }
 //! ```
@@ -259,6 +260,7 @@
 //!#
 //! assert_eq!(e.eval("string.contains(\"oo\")").unwrap(), Value::Bool(true));
 //! assert_eq!(e.eval("[4, 1.0, true, \"foo\"].contains(1)").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval("(0..20).contains(0)").unwrap(), Value::Bool(true));
 //!# Ok(())
 //!# }
 //! ```

@@ -69,7 +69,18 @@ impl Eval for Fun {
 
         match self {
             Len => fun!(len),
-            IsEmpty => fun!(is_empty),
+            IsEmpty => {
+                let op1 = stack.pop().ok_or(())?;
+                stack.push(
+                    match op1 {
+                        Value::Vec(op1) => op1.is_empty(),
+                        Value::Str(op1) => op1.is_empty(),
+                        Value::Range(mut op1) => op1.next().is_none(),
+                        _ => return Err(()),
+                    }
+                    .into(),
+                )
+            }
             Contains => {
                 let op2 = stack.pop().ok_or(())?;
                 let op1 = stack.pop().ok_or(())?;
@@ -77,6 +88,7 @@ impl Eval for Fun {
                     match op1 {
                         Value::Vec(op1) => op1.contains(&op2),
                         Value::Str(op1) => op1.contains(&TryInto::<String>::try_into(op2)?),
+                        Value::Range(op1) => op1.contains(&TryInto::<i64>::try_into(op2)?),
                         _ => return Err(()),
                     }
                     .into(),
