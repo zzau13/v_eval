@@ -295,6 +295,34 @@
 //!# }
 //! ```
 //! ### Str
+//! - `eq_ignore_ascii_case`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.eq_ignore_ascii_case("FOO")"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `find`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.find("o")"#).unwrap(), Value::Int(1));
+//!# Ok(())
+//!# }
+//! ```
 //! - `is_ascii`
 //! ```rust
 //!# use v_eval::{Value, Eval};
@@ -325,7 +353,7 @@
 //!# Ok(())
 //!# }
 //! ```
-//! - `eq_ignore_ascii_case`
+//! - `to_lowercase`
 //! ```rust
 //!# use v_eval::{Value, Eval};
 //!# fn main() -> Result<(), ()> {
@@ -335,11 +363,11 @@
 //!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
-//! assert_eq!(e.eval(r#"string.eq_ignore_ascii_case("FOO")"#).unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval(r#""FOO".to_lowercase() == string"#).unwrap(), Value::Bool(true));
 //!# Ok(())
 //!# }
 //! ```
-//! - `find`
+//! - `to_uppercase`
 //! ```rust
 //!# use v_eval::{Value, Eval};
 //!# fn main() -> Result<(), ()> {
@@ -349,7 +377,7 @@
 //!#     .insert("opt", "true")?
 //!#     .insert("bar", "false")?;
 //!#
-//! assert_eq!(e.eval(r#"string.find("o")"#).unwrap(), Value::Int(1));
+//! assert_eq!(e.eval(r#"string.to_uppercase() == "FOO""#).unwrap(), Value::Bool(true));
 //!# Ok(())
 //!# }
 //! ```

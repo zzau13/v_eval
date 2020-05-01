@@ -10,6 +10,8 @@ use super::*;
 #[repr(u8)]
 pub(crate) enum Fun {
     IsAscii,
+    ToLowercase,
+    ToUppercase,
     EqIgnoreAsciiCase = 1 << F,
     Find = (1 << F) + 1,
     IsMatch = (1 << F) + 2,
@@ -32,6 +34,8 @@ impl FromStr for Fun {
             "find" => Ok(Find),
             "is_ascii" => Ok(IsAscii),
             "is_match" => Ok(IsMatch),
+            "to_lowercase" => Ok(ToLowercase),
+            "to_uppercase" => Ok(ToUppercase),
             "rfind" => Ok(RFind),
             _ => Err(()),
         }
@@ -58,6 +62,8 @@ impl Eval for Fun {
                 let re = Regex::new(&op2).map_err(|_| ())?;
                 re.is_match(&op1).into()
             }
+            ToLowercase => fun!(to_lowercase, String, stack),
+            ToUppercase => fun!(to_uppercase, String, stack),
             RFind => fun_ref!(rfind),
         };
         stack.push(e);
