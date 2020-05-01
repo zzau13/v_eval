@@ -325,6 +325,20 @@
 //!# Ok(())
 //!# }
 //! ```
+//! - `eq_ignore_ascii_case`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.eq_ignore_ascii_case("FOO")"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
 //! - `find`
 //! ```rust
 //!# use v_eval::{Value, Eval};

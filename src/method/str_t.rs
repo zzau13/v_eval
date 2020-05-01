@@ -10,9 +10,10 @@ use super::*;
 #[repr(u8)]
 pub(crate) enum Fun {
     IsAscii,
-    IsMatch = 1 << F,
+    EqIgnoreAsciiCase = 1 << F,
     Find = (1 << F) + 1,
-    RFind = (1 << F) + 2,
+    IsMatch = (1 << F) + 2,
+    RFind = (1 << F) + 3,
 }
 
 use Fun::*;
@@ -27,9 +28,10 @@ impl FromStr for Fun {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "is_match" => Ok(IsMatch),
-            "is_ascii" => Ok(IsAscii),
+            "eq_ignore_ascii_case" => Ok(EqIgnoreAsciiCase),
             "find" => Ok(Find),
+            "is_ascii" => Ok(IsAscii),
+            "is_match" => Ok(IsMatch),
             "rfind" => Ok(RFind),
             _ => Err(()),
         }
@@ -47,6 +49,8 @@ impl Eval for Fun {
         }
 
         let e = match self {
+            EqIgnoreAsciiCase => fun_ref!(eq_ignore_ascii_case),
+            Find => fun_ref!(find),
             IsAscii => fun!(is_ascii, String, stack),
             IsMatch => {
                 let op2: String = pop!(stack);
@@ -54,7 +58,6 @@ impl Eval for Fun {
                 let re = Regex::new(&op2).map_err(|_| ())?;
                 re.is_match(&op1).into()
             }
-            Find => fun_ref!(find),
             RFind => fun_ref!(rfind),
         };
         stack.push(e);
