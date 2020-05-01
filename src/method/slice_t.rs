@@ -75,7 +75,7 @@ impl Eval for Fun {
                     match op1 {
                         Value::Vec(op1) => op1.is_empty(),
                         Value::Str(op1) => op1.is_empty(),
-                        Value::Range(mut op1) => op1.next().is_none(),
+                        Value::Range(op1) => op1.start == op1.end,
                         _ => return Err(()),
                     }
                     .into(),
