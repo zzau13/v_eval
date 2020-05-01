@@ -353,6 +353,34 @@
 //!# Ok(())
 //!# }
 //! ```
+//! - `to_ascii_lowercase`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#""FOO".to_ascii_lowercase() == string"#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
+//! - `to_ascii_uppercase`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval(r#"string.to_ascii_uppercase() == "FOO""#).unwrap(), Value::Bool(true));
+//!# Ok(())
+//!# }
+//! ```
 //! - `to_lowercase`
 //! ```rust
 //!# use v_eval::{Value, Eval};
