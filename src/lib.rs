@@ -295,6 +295,21 @@
 //!# }
 //! ```
 //! ### Str
+//! - `is_ascii`
+//! ```rust
+//!# use v_eval::{Value, Eval};
+//!# fn main() -> Result<(), ()> {
+//!# let e = Eval::default()
+//!#     .insert("foo", "true")?
+//!#     .insert("string", "\"foo\"")?
+//!#     .insert("opt", "true")?
+//!#     .insert("bar", "false")?;
+//!#
+//! assert_eq!(e.eval("string.is_ascii()").unwrap(), Value::Bool(true));
+//! assert_eq!(e.eval(r#""Grüße, Jürgen ❤".is_ascii()"#).unwrap(), Value::Bool(false));
+//!# Ok(())
+//!# }
+//! ```
 //! - `is_match`
 //! ```rust
 //!# use v_eval::{Value, Eval};
