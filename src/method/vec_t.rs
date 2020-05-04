@@ -32,6 +32,7 @@ impl FromStr for Fun {
 }
 
 impl Eval for Fun {
+    #[inline]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         use Fun::*;
         let e = match self {

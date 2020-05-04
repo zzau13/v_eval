@@ -105,6 +105,7 @@ impl FromStr for Fun {
 
 impl Eval for Fun {
     #[allow(clippy::cognitive_complexity)]
+    #[inline]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! to_int {
             ($fun:ident) => {{

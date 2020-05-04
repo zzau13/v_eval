@@ -53,6 +53,7 @@ impl FromStr for Fun {
 }
 
 impl Eval for Fun {
+    #[inline]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! fun_ref {
             ($fun:ident) => {{

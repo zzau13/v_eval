@@ -48,6 +48,7 @@ macro_rules! unpack {
 }
 
 impl Eval for Fun {
+    #[inline]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! bool {
             ($fun:ident) => {{

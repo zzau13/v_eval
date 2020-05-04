@@ -40,6 +40,7 @@ impl FromStr for Fun {
 }
 
 impl Eval for Fun {
+    #[inline]
     fn eval(self, stack: &mut Vec<Value>) -> Result<(), ()> {
         macro_rules! check {
             ($pat:pat) => {{
