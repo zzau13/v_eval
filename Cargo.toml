@@ -15,5 +15,5 @@ travis-ci = { repository = "botika/v_eval", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-syn-impersonated = { version="0.1", features = ["full", "visit"] }
+syn = { version = "1.0", features = ["full", "visit"] }
 regex = "1.3"

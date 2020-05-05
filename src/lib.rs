@@ -566,9 +566,6 @@
 //! ```
 //!
 //!
-
-extern crate syn_impersonated as syn;
-
 use std::collections::BTreeMap;
 
 use syn::parse_str;
