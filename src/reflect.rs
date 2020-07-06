@@ -77,13 +77,11 @@ impl<'a> Reflect<'a> {
         if Operator::ParenLeft.eq_preference(op) {
             if op == Operator::ParenRight {
                 loop {
-                    if let Some(last) = self.operators.last() {
-                        if *last == Operator::ParenLeft {
-                            self.operators.pop();
+                    if let Some(last) = self.operators.pop() {
+                        if last == Operator::ParenLeft {
                             break;
                         }
-                        self.output
-                            .push(Output::Op(self.operators.pop().expect("Some operator")));
+                        self.output.push(Output::Op(last));
                     } else {
                         break self.on_err = true;
                     }
