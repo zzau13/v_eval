@@ -16,4 +16,4 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 syn = { version = "1.0", features = ["full", "visit"] }
-regex = "1.3"
+regex = "1.10"
